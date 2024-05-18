@@ -1,3 +1,5 @@
+from prompts import SHOULD_SEARCH_PROMPT 
+
 class Router:
     """
     Determines if a search is needed for a given question.
