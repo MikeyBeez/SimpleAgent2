@@ -1,5 +1,5 @@
 from prompts import SHOULD_SEARCH_PROMPT
-from langchain_community.vectorstores import FAISS # Import FAISS from langchain_community
+from langchain.vectorstores import FAISS
 from sentence_transformers import SentenceTransformer  
 
 class Router:
@@ -9,13 +9,12 @@ class Router:
 
     def __init__(self, llm):
         self.llm = llm
-        # Import SHOULD_SEARCH_PROMPT inside the class
-        from prompts import SHOULD_SEARCH_PROMPT
         self.should_search_prompt = SHOULD_SEARCH_PROMPT
         self.common_greetings = ["hello", "hi", "hey", "good morning", "good afternoon", "good evening", "good night", "goodbye", "bye", "see you later", "talk to you later"]
         self.simple_questions = ["how are you?", "what's up?", "how's it going?", "what's your name?", "what can you do?", "what's the time?"]
-        self.embeddings = SentenceTransformer("all-mpnet-base-v2")
-        self.vectorstore = None 
+        # self.embeddings = SentenceTransformer("all-mpnet-base-v2")
+        # self.vectorstore = None 
+        # These should be initialized in the main file
 
     def should_search(self, question, chat_history):
         """

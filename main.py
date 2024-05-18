@@ -1,5 +1,4 @@
 import asyncio
-import warnings
 from langchain_community.llms import Ollama  # Import the Ollama language model class
 from langchain_community.tools import DuckDuckGoSearchRun  # Import the DuckDuckGo search tool class
 from prompts import MAIN_PROMPT, SHOULD_SEARCH_PROMPT  # Import prompt templates from prompts.py
@@ -8,11 +7,6 @@ from entities import Entities  # Import the entities module
 from routing import Router  # Import the Router class
 from sentence_transformers import SentenceTransformer  # Import SentenceTransformers
 from langchain_community.vectorstores import FAISS # Import FAISS from langchain_community
-
-
-# Suppress the FutureWarning from huggingface_hub
-warnings.filterwarnings("ignore", category=FutureWarning, module="huggingface_hub")
-
 
 # Initialize the Ollama language model
 llm = Ollama(model="llama3-chatqa")  # Create an instance of the Ollama model, using the "llama3-chatqa" model
@@ -23,6 +17,11 @@ search = DuckDuckGoSearchRun() # Create an instance of the DuckDuckGo search too
 # Create an instance of the Entities class
 entities = Entities() 
 
+# Initialize the router *before* the conversation loop
+embeddings = SentenceTransformer("all-mpnet-base-v2")
+router = Router(llm)
+router.vectorstore = FAISS.from_texts([], embeddings) # Create an empty vector store
+
 async def conversation_loop():
     # Get the user's name if it's not already set
     if not entities.get_user_name(): 
@@ -31,9 +30,6 @@ async def conversation_loop():
 
     # Load the conversation memory from file or create a new one
     memory = load_memory(llm)  # Load conversation history, memory is a ConversationSummaryMemory object
-
-    # Create a router
-    router = Router(llm)
 
     # Main conversation loop
     while True:
