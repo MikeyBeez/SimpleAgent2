@@ -5,6 +5,8 @@ from prompts import MAIN_PROMPT, SHOULD_SEARCH_PROMPT  # Import prompt templates
 from memory import load_memory, save_memory, clear_memory, update_memory_async # Import memory management functions (including clear_memory)
 from entities import Entities  # Import the entities module
 from routing import Router  # Import the Router class
+from sentence_transformers import SentenceTransformer  # Import SentenceTransformers
+from langchain.vectorstores import FAISS # Import FAISS 
 
 # Initialize the Ollama language model
 llm = Ollama(model="llama3-chatqa")  # Create an instance of the Ollama model, using the "llama3-chatqa" model
@@ -15,17 +17,17 @@ search = DuckDuckGoSearchRun() # Create an instance of the DuckDuckGo search too
 # Create an instance of the Entities class
 entities = Entities() 
 
+# Load the conversation memory from file or create a new one
+memory = load_memory(llm)  # Load conversation history, memory is a ConversationSummaryMemory object
+
+# Create a router
+router = Router(llm)
+
 async def conversation_loop():
     # Get the user's name if it's not already set
     if not entities.get_user_name(): 
         user_name = input("What is your name? ")
         entities.set_user_name(user_name)
-
-    # Load the conversation memory from file or create a new one
-    memory = load_memory(llm)  # Load conversation history, memory is a ConversationSummaryMemory object
-
-    # Create a router
-    router = Router(llm)
 
     # Main conversation loop
     while True:
