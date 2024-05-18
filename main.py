@@ -1,4 +1,7 @@
 import asyncio
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning)  # Suppress the warnings
+
 from langchain_community.llms import Ollama  # Import the Ollama language model class
 from langchain_community.tools import DuckDuckGoSearchRun  # Import the DuckDuckGo search tool class
 from prompts import MAIN_PROMPT, SHOULD_SEARCH_PROMPT  # Import prompt templates from prompts.py
@@ -20,12 +23,15 @@ entities = Entities()
 # Initialize the router *before* the conversation loop
 embeddings = SentenceTransformer("all-mpnet-base-v2")
 router = Router(llm)
-router.vectorstore = FAISS.from_texts([], embeddings) # Create an empty vector store
+
+# --- No need to initialize the vector store here anymore ---
 
 async def conversation_loop():
     # Get the user's name if it's not already set
     if not entities.get_user_name(): 
         user_name = input("What is your name? ")
+        print(f"Hello, {user_name}!")
+        print("How can I help you?")
         entities.set_user_name(user_name)
 
     # Load the conversation memory from file or create a new one
@@ -53,8 +59,12 @@ async def conversation_loop():
         context = memory.load_memory_variables({"question": question}) # context is a dictionary containing memory variables
         chat_history = context.get("history", "") # chat_history is a string containing the summarized conversation history
 
+        #print("Question:", question)  # Debug: Print the question
+        #print("Chat History:", chat_history)  # Debug: Print the chat history
+
         # Determine if a search is needed using the Router
         should_search = router.should_search(question, chat_history)
+        #print(f"Should search: {should_search}")  # Debug: Print the search decision
 
         # Initialize search results to an empty string
         search_results = "" # search_results will store the search results if a search is performed
@@ -86,6 +96,9 @@ async def conversation_loop():
             chat_history += f"{user_name}: {question}\nAgent: {response}\n" 
         else:
             chat_history += f"You: {question}\nAgent: {response}\n" 
+
+        # Update the context vectorstore
+        router.update_context(question, chat_history)
 
         # Save the current interaction to memory asynchronously
         asyncio.create_task(update_memory_async(memory, question, response, entities))  

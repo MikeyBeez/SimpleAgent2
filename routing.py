@@ -1,6 +1,6 @@
 from prompts import SHOULD_SEARCH_PROMPT
-from langchain.vectorstores import FAISS
-from sentence_transformers import SentenceTransformer  
+from langchain_community.embeddings import OllamaEmbeddings  # Import OllamaEmbeddings
+from scipy.spatial.distance import cosine
 
 class Router:
     """
@@ -12,9 +12,8 @@ class Router:
         self.should_search_prompt = SHOULD_SEARCH_PROMPT
         self.common_greetings = ["hello", "hi", "hey", "good morning", "good afternoon", "good evening", "good night", "goodbye", "bye", "see you later", "talk to you later"]
         self.simple_questions = ["how are you?", "what's up?", "how's it going?", "what's your name?", "what can you do?", "what's the time?"]
-        # self.embeddings = SentenceTransformer("all-mpnet-base-v2")
-        # self.vectorstore = None 
-        # These should be initialized in the main file
+        self.embeddings = OllamaEmbeddings(model="mxbai-embed-large")  # Use OllamaEmbeddings
+        self.chat_history_embeddings = [] 
 
     def should_search(self, question, chat_history):
         """
@@ -36,12 +35,15 @@ class Router:
             return False  # No search needed
 
         # Check for contextual similarity
-        if self.vectorstore:
-            # Find semantically similar questions in the conversation history
-            similar_questions = self.vectorstore.similarity_search_with_score(question, k=3)
-            for similar_question, score in similar_questions:
-                if score > 0.8:  # Adjust threshold as needed
-                    return False  # No search needed, question is similar to previous questions
+        question_embedding = self.embeddings.embed_query(question)
+        if self.chat_history_embeddings:
+            # Calculate cosine similarity with chat history embeddings
+            similarities = [1 - cosine(question_embedding, embedding) for embedding in self.chat_history_embeddings]
+            # Find the most similar message
+            most_similar_index = similarities.index(max(similarities))
+            most_similar_score = similarities[most_similar_index]
+            if most_similar_score > 0.8:  # Adjust threshold as needed
+                return False  # No search needed, question is similar to previous questions
 
         # If none of the checks pass, use the LLM to determine if a search is needed
         response = self.llm.invoke(
@@ -53,7 +55,6 @@ class Router:
         """
         Updates the context vectorstore with the new question.
         """
-        if not self.vectorstore:
-            self.vectorstore = FAISS.from_texts([chat_history], self.embeddings)
-        else:
-            self.vectorstore.add_texts([question], self.embeddings)
+        # Get the embedding for the new question
+        question_embedding = self.embeddings.embed_query(question)
+        self.chat_history_embeddings.append(question_embedding)
