@@ -1,26 +1,16 @@
 import asyncio
 import json
 from langchain.memory import ConversationSummaryMemory
-import os # Import os to use os.remove()
+import os
 
 MEMORY_FILE = "conversation_memory.json"
 
-async def save_memory_async(memory):
+async def save_memory(memory):
     """Saves the conversation memory to a JSON file asynchronously."""
     with open(MEMORY_FILE, "w") as f:
         json.dump(memory.to_json(), f)
 
-async def load_memory_async(llm):
-    """Loads the conversation memory from a JSON file asynchronously."""
-    try:
-        with open(MEMORY_FILE, "r") as f:
-            memory_data = json.load(f)
-        memory = ConversationSummaryMemory(llm=llm, **memory_data)
-    except FileNotFoundError:
-        memory = ConversationSummaryMemory(llm=llm, memory_key="chat_history")
-    return memory
-
-async def clear_memory_async():
+async def clear_memory():
     """Clears the conversation memory file asynchronously."""
     try:
         os.remove(MEMORY_FILE)
@@ -28,24 +18,23 @@ async def clear_memory_async():
     except FileNotFoundError:
         print("Memory file not found.")
 
-async def main():
-    llm = ...  # Your LLM instance
-    memory = await load_memory_async(llm) 
+def load_memory(llm):
+    """
+    Loads the conversation memory from a JSON file (blocking).
 
-    while True:
-        user_input = input(":you: ")
-        if user_input.lower() == "clear memory":
-            # Call the clear_memory_async function asynchronously
-            await clear_memory_async()
-            memory = await load_memory_async(llm)
-            continue
+    Args:
+        llm: The language model instance used by the memory.
 
-        # ... (your logic for prompting the agent and generating a response)
-
-        # Save the memory asynchronously
-        asyncio.create_task(save_memory_async(memory)) 
-
-        # ... (handle the response, update the memory, etc.)
-
-if __name__ == "__main__":
-    asyncio.run(main())
+    Returns:
+        ConversationSummaryMemory: The loaded conversation memory object.
+    """
+    try:
+        # Attempt to load memory from the JSON file
+        with open(MEMORY_FILE, "r") as f:
+            memory_data = json.load(f)
+        # Create a ConversationSummaryMemory object using the loaded data and the LLM
+        memory = ConversationSummaryMemory(llm=llm, **memory_data)
+    except FileNotFoundError:
+        # If the memory file doesn't exist, create a new ConversationSummaryMemory object
+        memory = ConversationSummaryMemory(llm=llm, memory_key="chat_history")
+    return memory
