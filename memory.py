@@ -33,7 +33,7 @@ def load_memory(llm):
         with open(MEMORY_FILE, "r") as f:
             memory_data = json.load(f)
         # Create a ConversationSummaryMemory object using the loaded data and the LLM
-        memory = ConversationSummaryMemory(llm=llm, **memory_data)
+        memory = ConversationSummaryMemory(llm=llm, **memory_data, max_token_limit=5000)
     except FileNotFoundError:
         # If the memory file doesn't exist, create a new ConversationSummaryMemory object
         memory = ConversationSummaryMemory(llm=llm, memory_key="chat_history")
