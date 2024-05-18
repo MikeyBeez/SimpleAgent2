@@ -1,6 +1,7 @@
 import asyncio
 import json
 from langchain.memory import ConversationSummaryMemory
+import os # Import os to use os.remove()
 
 MEMORY_FILE = "conversation_memory.json"
 
@@ -19,12 +20,26 @@ async def load_memory_async(llm):
         memory = ConversationSummaryMemory(llm=llm, memory_key="chat_history")
     return memory
 
+async def clear_memory_async():
+    """Clears the conversation memory file asynchronously."""
+    try:
+        os.remove(MEMORY_FILE)
+        print("Conversation memory cleared.")
+    except FileNotFoundError:
+        print("Memory file not found.")
+
 async def main():
     llm = ...  # Your LLM instance
     memory = await load_memory_async(llm) 
 
     while True:
         user_input = input(":you: ")
+        if user_input.lower() == "clear memory":
+            # Call the clear_memory_async function asynchronously
+            await clear_memory_async()
+            memory = await load_memory_async(llm)
+            continue
+
         # ... (your logic for prompting the agent and generating a response)
 
         # Save the memory asynchronously
