@@ -11,13 +11,18 @@ llm = Ollama(model="llama3-chatqa")  # Create an instance of the Ollama model, u
 # Initialize the DuckDuckGo search tool
 search = DuckDuckGoSearchRun() # Create an instance of the DuckDuckGo search tool
 
-# Load the conversation memory from file or create a new one
-memory = load_memory(llm)  # Load conversation history, memory is a ConversationSummaryMemory object
-
 # Create an instance of the Entities class
 entities = Entities() 
 
 async def conversation_loop():
+    # Get the user's name if it's not already set
+    if not entities.get_user_name(): 
+        user_name = input("What is your name? ")
+        entities.set_user_name(user_name)
+
+    # Load the conversation memory from file or create a new one
+    memory = load_memory(llm)  # Load conversation history, memory is a ConversationSummaryMemory object
+
     # Main conversation loop
     while True:
         # Get user input
@@ -54,6 +59,7 @@ async def conversation_loop():
             chat_history=chat_history, # Pass the chat history
             question=question, # Pass the user's question
             search_results=search_results, # Pass the search results (if any)
+            user_name=entities.get_user_name()
         )  # formatted_prompt is a string containing the complete prompt for the LLM
 
         # Generate the agent's response using streaming output
