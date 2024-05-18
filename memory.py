@@ -1,46 +1,47 @@
-# memory.py
-# This file handles the agent's memory.
-# It stores user input and other information for future reference.
+import json
+from langchain.memory import ConversationSummaryMemory
 
-class Memory:
+# Define the file name for storing conversation memory
+MEMORY_FILE = "conversation_memory.json"
+
+
+def load_memory(llm):
     """
-    This class represents the agent's memory.
-    It stores user input and other important information for future reference. 
+    Loads the conversation memory from a JSON file.
+
+    Args:
+        llm: The language model instance used by the memory.
+
+    Returns:
+        ConversationSummaryMemory: The loaded conversation memory object.
     """
+    try:
+        # Attempt to load memory from the JSON file
+        with open(MEMORY_FILE, "r") as f:
+            memory_data = json.load(f)
+        # Create a ConversationSummaryMemory object using the loaded data and the LLM
+        memory = ConversationSummaryMemory(llm=llm, **memory_data)
+        # Fix: No need to initialize 'chat_history' here
+    except FileNotFoundError:
+        # If the memory file doesn't exist, create a new ConversationSummaryMemory object
+        memory = ConversationSummaryMemory(llm=llm, memory_key="chat_history")
+    return memory
 
-    def __init__(self):
-        """
-        Initializes the memory.
-        The memory is represented as a dictionary, where keys are the user inputs
-        and values are the corresponding agent responses.
-        """
-        self.memory = {}
 
-    def add_to_memory(self, user_input, agent_response):
-        """
-        Adds a new entry to the memory.
+def save_memory(memory):
+    """
+    Saves the conversation memory to a JSON file.
 
-        Args:
-            user_input (str): The user's input.
-            agent_response (str): The agent's response to the user input.
+    Args:
+        memory: The conversation memory object.
+    """
+    with open(MEMORY_FILE, "w") as f:
+        json.dump(memory.to_json(), f)
 
-        Returns:
-            None
-        """
-        self.memory[user_input] = agent_response
-
-    def retrieve_from_memory(self, user_input):
-        """
-        Retrieves the agent's response to a given user input from the memory.
-
-        Args:
-            user_input (str): The user's input.
-
-        Returns:
-            str: The agent's response to the user input, if it exists in the memory.
-            None: If the user input is not found in the memory.
-        """
-        if user_input in self.memory:
-            return self.memory[user_input]
-        else:
-            return None
+def clear_memory():
+    """Clears the conversation memory file."""
+    try:
+        os.remove(MEMORY_FILE)
+        print("Conversation memory cleared.")
+    except FileNotFoundError:
+        print("Memory file not found.")
