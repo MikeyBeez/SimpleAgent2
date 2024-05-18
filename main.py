@@ -1,4 +1,5 @@
 import asyncio
+import warnings
 from langchain_community.llms import Ollama  # Import the Ollama language model class
 from langchain_community.tools import DuckDuckGoSearchRun  # Import the DuckDuckGo search tool class
 from prompts import MAIN_PROMPT, SHOULD_SEARCH_PROMPT  # Import prompt templates from prompts.py
@@ -7,6 +8,11 @@ from entities import Entities  # Import the entities module
 from routing import Router  # Import the Router class
 from sentence_transformers import SentenceTransformer  # Import SentenceTransformers
 from langchain_community.vectorstores import FAISS # Import FAISS from langchain_community
+
+
+# Suppress the FutureWarning from huggingface_hub
+warnings.filterwarnings("ignore", category=FutureWarning, module="huggingface_hub")
+
 
 # Initialize the Ollama language model
 llm = Ollama(model="llama3-chatqa")  # Create an instance of the Ollama model, using the "llama3-chatqa" model
