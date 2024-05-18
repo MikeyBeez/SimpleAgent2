@@ -6,7 +6,7 @@ from memory import load_memory, save_memory, clear_memory, update_memory_async #
 from entities import Entities  # Import the entities module
 from routing import Router  # Import the Router class
 from sentence_transformers import SentenceTransformer  # Import SentenceTransformers
-from langchain.vectorstores import FAISS # Import FAISS 
+from langchain_community.vectorstores import FAISS # Import FAISS from langchain_community
 
 # Initialize the Ollama language model
 llm = Ollama(model="llama3-chatqa")  # Create an instance of the Ollama model, using the "llama3-chatqa" model
@@ -17,17 +17,17 @@ search = DuckDuckGoSearchRun() # Create an instance of the DuckDuckGo search too
 # Create an instance of the Entities class
 entities = Entities() 
 
-# Load the conversation memory from file or create a new one
-memory = load_memory(llm)  # Load conversation history, memory is a ConversationSummaryMemory object
-
-# Create a router
-router = Router(llm)
-
 async def conversation_loop():
     # Get the user's name if it's not already set
     if not entities.get_user_name(): 
         user_name = input("What is your name? ")
         entities.set_user_name(user_name)
+
+    # Load the conversation memory from file or create a new one
+    memory = load_memory(llm)  # Load conversation history, memory is a ConversationSummaryMemory object
+
+    # Create a router
+    router = Router(llm)
 
     # Main conversation loop
     while True:

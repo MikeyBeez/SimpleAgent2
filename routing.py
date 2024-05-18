@@ -1,5 +1,5 @@
 from prompts import SHOULD_SEARCH_PROMPT
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS # Import FAISS from langchain_community
 from sentence_transformers import SentenceTransformer  
 
 class Router:
