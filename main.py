@@ -10,10 +10,9 @@ llm = Ollama(model="llama3-chatqa")  # Create an instance of the Ollama model, u
 # Initialize the DuckDuckGo search tool
 search = DuckDuckGoSearchRun() # Create an instance of the DuckDuckGo search tool
 
-# Load the conversation memory from file or create a new one
-memory = load_memory(llm)  # Load conversation history, memory is a ConversationSummaryMemory object
-
 async def conversation_loop():
+    # Load the conversation memory from file or create a new one
+    memory = load_memory(llm)  # Load conversation history, memory is a ConversationSummaryMemory object
     # Main conversation loop
     while True:
         # Get user input
