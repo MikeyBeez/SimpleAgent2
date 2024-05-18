@@ -66,4 +66,4 @@ while True:
     memory.save_context({"input": question}, {"output": response}) 
 
 # Save the conversation memory to file after the loop ends
-save_memory(memory)
+await save_memory(memory)
