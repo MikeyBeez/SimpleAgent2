@@ -1,6 +1,5 @@
-from prompts import SHOULD_SEARCH_PROMPT
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
+from langchain_community.llms import Ollama  
+# ... rest of your code
 
 class Router:
     """
@@ -12,8 +11,7 @@ class Router:
         self.should_search_prompt = SHOULD_SEARCH_PROMPT
         self.common_greetings = ["hello", "hi", "hey", "good morning", "good afternoon", "good evening", "good night", "goodbye", "bye", "see you later", "talk to you later"]
         self.simple_questions = ["how are you?", "what's up?", "how's it going?", "what's your name?", "what can you do?", "what's the time?"]
-        self.embeddings = OpenAIEmbeddings()
-        self.vectorstore = None
+        self.vectorstore = None 
 
     def should_search(self, question, chat_history):
         """
@@ -53,6 +51,6 @@ class Router:
         Updates the context vectorstore with the new question.
         """
         if not self.vectorstore:
-            self.vectorstore = FAISS.from_texts([chat_history], self.embeddings)
+            self.vectorstore = FAISS.from_texts([chat_history], self.llm.embed_query)
         else:
-            self.vectorstore.add_texts([question], self.embeddings)
+            self.vectorstore.add_texts([question], self.llm.embed_query)
