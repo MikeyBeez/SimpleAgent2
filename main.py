@@ -67,4 +67,4 @@ while True:
     asyncio.create_task(save_memory(memory))  
 
 # Save the conversation memory to file after the loop ends
-asyncio.run(save_memory(memory)) 
+asyncio.run(await save_memory(memory)) 
