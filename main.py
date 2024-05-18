@@ -2,7 +2,8 @@ import asyncio
 from langchain_community.llms import Ollama  # Import the Ollama language model class
 from langchain_community.tools import DuckDuckGoSearchRun  # Import the DuckDuckGo search tool class
 from prompts import MAIN_PROMPT, SHOULD_SEARCH_PROMPT  # Import prompt templates from prompts.py
-from memory import load_memory, save_memory, clear_memory # Import memory management functions (including clear_memory)
+from memory import load_memory, save_memory, clear_memory, update_memory_async # Import memory management functions (including clear_memory)
+from entities import Entities  # Import the entities module
 
 # Initialize the Ollama language model
 llm = Ollama(model="llama3-chatqa")  # Create an instance of the Ollama model, using the "llama3-chatqa" model
@@ -10,9 +11,13 @@ llm = Ollama(model="llama3-chatqa")  # Create an instance of the Ollama model, u
 # Initialize the DuckDuckGo search tool
 search = DuckDuckGoSearchRun() # Create an instance of the DuckDuckGo search tool
 
+# Load the conversation memory from file or create a new one
+memory = load_memory(llm)  # Load conversation history, memory is a ConversationSummaryMemory object
+
+# Create an instance of the Entities class
+entities = Entities() 
+
 async def conversation_loop():
-    # Load the conversation memory from file or create a new one
-    memory = load_memory(llm)  # Load conversation history, memory is a ConversationSummaryMemory object
     # Main conversation loop
     while True:
         # Get user input
@@ -61,10 +66,14 @@ async def conversation_loop():
         print()  # Print a newline after the response is complete
 
         # Update the chat history with the current turn's conversation
-        chat_history += f"You: {question}\nAgent: {response}\n" 
+        user_name = entities.get_user_name()
+        if user_name:
+            chat_history += f"{user_name}: {question}\nAgent: {response}\n" 
+        else:
+            chat_history += f"You: {question}\nAgent: {response}\n" 
 
         # Save the current interaction to memory asynchronously
-        asyncio.create_task(save_memory(memory))  
+        asyncio.create_task(update_memory_async(memory, question, response, entities))  
 
     # Save the conversation memory to file after the loop ends
     await save_memory(memory) 
