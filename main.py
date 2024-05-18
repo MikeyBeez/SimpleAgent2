@@ -1,3 +1,4 @@
+import asyncio
 from langchain_community.llms import Ollama  # Import the Ollama language model class
 from langchain_community.tools import DuckDuckGoSearchRun  # Import the DuckDuckGo search tool class
 from prompts import MAIN_PROMPT, SHOULD_SEARCH_PROMPT  # Import prompt templates from prompts.py
@@ -62,8 +63,8 @@ while True:
     # Update the chat history with the current turn's conversation
     chat_history += f"You: {question}\nAgent: {response}\n" 
 
-    # Save the current interaction to memory
-    memory.save_context({"input": question}, {"output": response}) 
+    # Save the current interaction to memory asynchronously
+    asyncio.create_task(save_memory(memory))  
 
 # Save the conversation memory to file after the loop ends
-await save_memory(memory)
+asyncio.run(save_memory(memory)) 
