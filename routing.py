@@ -9,6 +9,8 @@ class Router:
 
     def __init__(self, llm):
         self.llm = llm
+        # Import SHOULD_SEARCH_PROMPT inside the class
+        from prompts import SHOULD_SEARCH_PROMPT
         self.should_search_prompt = SHOULD_SEARCH_PROMPT
         self.common_greetings = ["hello", "hi", "hey", "good morning", "good afternoon", "good evening", "good night", "goodbye", "bye", "see you later", "talk to you later"]
         self.simple_questions = ["how are you?", "what's up?", "how's it going?", "what's your name?", "what can you do?", "what's the time?"]
