@@ -1,11 +1,5 @@
-# prompts.py
-# This file defines the prompt templates used by the conversational agent.
-# It includes system instructions, a main prompt template for question answering,
-# and a prompt template for determining if a search is needed.
-
 from langchain.prompts import PromptTemplate
 
-# Define the initial system instructions for the agent
 SYSTEM_MESSAGE = """<|begin_of_text|>
 <|start_header_id|>system<|end_header_id|>
 You are a friendly and enthusiastic AI assistant. 
@@ -36,21 +30,19 @@ Assistant: The capital of France is Paris. This information was confirmed by sea
 <|start_header_id|>user<|end_header_id|>
 """
 
-# Define the main prompt template for question answering
 MAIN_PROMPT = PromptTemplate(
-    input_variables=["chat_history", "question", "search_results"],
+    input_variables=["chat_history", "question", "search_results", "user_name"],
     template=f"""{SYSTEM_MESSAGE}
-{{chat_history}}
-Question: {{question}}
+    {{chat_history}}
+    {{user_name}}: {{question}}
 
-Search Results:
-{{search_results}}
-<|eot_id|>
-<|start_header_id|>assistant<|end_header_id|>
-Answer:"""
+    Search Results:
+    {{search_results}}
+    <|eot_id|>
+    <|start_header_id|>assistant<|end_header_id|>
+    Answer:"""
 )
 
-# Define a prompt template for determining if a search is needed
 SHOULD_SEARCH_PROMPT = PromptTemplate(
     input_variables=["question", "chat_history"],
     template="""<|begin_of_text|>
