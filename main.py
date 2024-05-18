@@ -55,11 +55,12 @@ async def conversation_loop():
             search_results = search.run(question) # search_results is a string containing the results from DuckDuckGo
 
         # Format the main prompt with the chat history, question, and search results
+        user_name = entities.get_user_name()
         formatted_prompt = MAIN_PROMPT.format(
             chat_history=chat_history, # Pass the chat history
             question=question, # Pass the user's question
             search_results=search_results, # Pass the search results (if any)
-            user_name=entities.get_user_name()
+            user_name=user_name
         )  # formatted_prompt is a string containing the complete prompt for the LLM
 
         # Generate the agent's response using streaming output
@@ -72,7 +73,6 @@ async def conversation_loop():
         print()  # Print a newline after the response is complete
 
         # Update the chat history with the current turn's conversation
-        user_name = entities.get_user_name()
         if user_name:
             chat_history += f"{user_name}: {question}\nAgent: {response}\n" 
         else:
