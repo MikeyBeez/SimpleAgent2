@@ -161,4 +161,5 @@ cython_debug/
 .conda-env
 conda-meta
 envs/
+conversation_memory.json
 
