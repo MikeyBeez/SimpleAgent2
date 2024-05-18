@@ -4,6 +4,7 @@ from langchain_community.tools import DuckDuckGoSearchRun  # Import the DuckDuck
 from prompts import MAIN_PROMPT, SHOULD_SEARCH_PROMPT  # Import prompt templates from prompts.py
 from memory import load_memory, save_memory, clear_memory, update_memory_async # Import memory management functions (including clear_memory)
 from entities import Entities  # Import the entities module
+from routing import Router  # Import the Router class
 
 # Initialize the Ollama language model
 llm = Ollama(model="llama3-chatqa")  # Create an instance of the Ollama model, using the "llama3-chatqa" model
@@ -22,6 +23,9 @@ async def conversation_loop():
 
     # Load the conversation memory from file or create a new one
     memory = load_memory(llm)  # Load conversation history, memory is a ConversationSummaryMemory object
+
+    # Create a router
+    router = Router(llm)
 
     # Main conversation loop
     while True:
@@ -45,16 +49,14 @@ async def conversation_loop():
         context = memory.load_memory_variables({"question": question}) # context is a dictionary containing memory variables
         chat_history = context.get("history", "") # chat_history is a string containing the summarized conversation history
 
-        # Determine if a search is needed using the SHOULD_SEARCH_PROMPT
-        should_search = llm.invoke(
-            SHOULD_SEARCH_PROMPT.format(question=question, chat_history=chat_history)
-        ).strip() # should_search is a string, either "yes" or "no", indicating if a search is needed
+        # Determine if a search is needed using the Router
+        should_search = router.should_search(question, chat_history)
 
         # Initialize search results to an empty string
         search_results = "" # search_results will store the search results if a search is performed
 
-        # Perform a search if the LLM determines it's necessary
-        if should_search.lower() == "yes":
+        # Perform a search if the Router determines it's necessary
+        if should_search:
             print("Agent: Searching...")
             search_results = search.run(question) # search_results is a string containing the results from DuckDuckGo
 
