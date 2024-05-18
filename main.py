@@ -26,7 +26,11 @@ async def conversation_loop():
     # Main conversation loop
     while True:
         # Get user input
-        question = input("You: ") # question is a string containing the user's input
+        user_name = entities.get_user_name()
+        if user_name:
+            question = input(f"{user_name}: ") # question is a string containing the user's input
+        else:
+            question = input("You: ") # question is a string containing the user's input
 
         # Check for special commands
         if question.lower() == "clear memory":
@@ -55,7 +59,6 @@ async def conversation_loop():
             search_results = search.run(question) # search_results is a string containing the results from DuckDuckGo
 
         # Format the main prompt with the chat history, question, and search results
-        user_name = entities.get_user_name()
         formatted_prompt = MAIN_PROMPT.format(
             chat_history=chat_history, # Pass the chat history
             question=question, # Pass the user's question
