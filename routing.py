@@ -1,60 +1,43 @@
-from prompts import SHOULD_SEARCH_PROMPT
-from langchain_community.embeddings import OllamaEmbeddings  # Import OllamaEmbeddings
-from scipy.spatial.distance import cosine
+from search_logic import should_search
+from context_manager import update_context
+from skill_handler import handle_skills
+from langchain_community.tools import DuckDuckGoSearchRun  # Import the search tool
 
 class Router:
     """
-    Determines if a search is needed for a given question.
+    Determines the best approach to answering a user's question.
     """
 
-    def __init__(self, llm):
+    def __init__(self, llm, embeddings):
         self.llm = llm
-        self.should_search_prompt = SHOULD_SEARCH_PROMPT
-        self.common_greetings = ["hello", "hi", "hey", "good morning", "good afternoon", "good evening", "good night", "goodbye", "bye", "see you later", "talk to you later"]
-        self.simple_questions = ["how are you?", "what's up?", "how's it going?", "what's your name?", "what can you do?", "what's the time?"]
-        self.embeddings = OllamaEmbeddings(model="mxbai-embed-large")  # Use OllamaEmbeddings
-        self.chat_history_embeddings = [] 
+        self.embeddings = embeddings
+        self.chat_history_embeddings = []
+        self.search = DuckDuckGoSearchRun() # Initialize the search object here
 
-    def should_search(self, question, chat_history):
+    def route(self, question, chat_history, available_skills):
         """
-        Determines if a search is needed for the given question.
+        Determines whether to search, use the knowledge base, or execute a skill.
 
         Args:
             question (str): The user's question.
             chat_history (str): The conversation history.
+            available_skills (list): A list of available Skill objects.
 
         Returns:
-            bool: True if a search is needed, False otherwise.
+            str: The response to the user.
         """
-        # Check for common greetings
-        if question.lower() in self.common_greetings:
-            return False  # No search needed
+        if should_search(question, chat_history, self.llm, self.embeddings, self.chat_history_embeddings):
+            # ... (Your logic for performing a web search)
+            # Example (assuming you have a search object called `self.search`):
+            search_results = self.search.run(question)
+            return search_results
+        elif handle_skills(question, chat_history, available_skills):
+            # ... (Your logic for executing a skill)
+            # Example: 
+            return handle_skills(question, chat_history, available_skills) 
+        else:
+            # ... (Your logic for responding directly using the knowledge base)
+            return "I don't know."  # Placeholder for knowledge base response
 
-        # Check for simple questions
-        if question.lower() in self.simple_questions:
-            return False  # No search needed
-
-        # Check for contextual similarity
-        question_embedding = self.embeddings.embed_query(question)
-        if self.chat_history_embeddings:
-            # Calculate cosine similarity with chat history embeddings
-            similarities = [1 - cosine(question_embedding, embedding) for embedding in self.chat_history_embeddings]
-            # Find the most similar message
-            most_similar_index = similarities.index(max(similarities))
-            most_similar_score = similarities[most_similar_index]
-            if most_similar_score > 0.8:  # Adjust threshold as needed
-                return False  # No search needed, question is similar to previous questions
-
-        # If none of the checks pass, use the LLM to determine if a search is needed
-        response = self.llm.invoke(
-            self.should_search_prompt.format(question=question, chat_history=chat_history)
-        ).strip()
-        return response.lower() == "yes" 
-
-    def update_context(self, question, chat_history):
-        """
-        Updates the context vectorstore with the new question.
-        """
-        # Get the embedding for the new question
-        question_embedding = self.embeddings.embed_query(question)
-        self.chat_history_embeddings.append(question_embedding)
+        # Update the context
+        update_context(question, chat_history, self.embeddings, self.chat_history_embeddings)
