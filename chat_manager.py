@@ -1,12 +1,16 @@
+import json
+import requests
+import config  # Import the config module
 import asyncio
+
 from langchain_community.llms import Ollama
 from langchain_community.tools import DuckDuckGoSearchRun
 from prompts import MAIN_PROMPT, SHOULD_SEARCH_PROMPT
 from memory import load_memory, save_memory, clear_memory, update_memory_async
 from entities import Entities
-from routing import Router  # Don't import should_search, it's now accessed through Router
+from routing import Router 
 from langchain_community.embeddings import OllamaEmbeddings
-from context_manager import update_context # Import update_context
+from context_manager import update_context
 from get_time_skill import GetTimeSkill
 from get_weather_skill import GetWeatherSkill
 import logging
@@ -19,7 +23,7 @@ logging.basicConfig(filename='chat_log.txt', level=logging.INFO,
 class ChatManager:
     def __init__(self):
         # Initialize the Ollama language model
-        self.llm = Ollama(model="llama3-chatqa")  # Initialize self.llm here
+        self.llm = Ollama(model="llama3-chatqa") 
 
         # Initialize the DuckDuckGo search tool
         self.search = DuckDuckGoSearchRun()
@@ -33,10 +37,9 @@ class ChatManager:
 
         # Initialize available skills 
         self.get_time_skill = GetTimeSkill()
-        self.get_weather_skill = GetWeatherSkill(api_key=config.OPENWEATHERMAP_API_KEY,
-                                                 zip_code=config.ZIP_CODE)
+        self.get_weather_skill = GetWeatherSkill(latitude=config.latitude, 
+                                                 longitude=config.longitude)
         self.available_skills = [self.get_time_skill, self.get_weather_skill]
-
 
     async def run_conversation(self):
         # Get the user's name if it's not already set
@@ -47,7 +50,7 @@ class ChatManager:
             self.entities.set_user_name(user_name)
 
         # Load the conversation memory from file or create a new one
-        memory = load_memory(self.llm)  # Initialize memory here
+        memory = load_memory(self.llm)  
 
         # Main conversation loop
         while True:
@@ -73,7 +76,8 @@ class ChatManager:
             context = memory.load_memory_variables({"question": question})
             chat_history = context.get("history", "")
 
-            # Determine if a search is needed, a skill should be used, or the knowledge base should be queried
+            # Determine if a search is needed, a skill should be used, 
+            # or the knowledge base should be queried
             response = self.router.route(question, chat_history, self.available_skills)
 
             # Check if the response is None (meaning no route was found)

@@ -7,6 +7,7 @@ class GetTimeSkill:
         return f"The current time is {current_time}."
 
     def trigger(self, input_text):
-        trigger_phrases = ["what time is it", "what's the time", "tell me the time", "time"] # No need for "assistant" here
-        print(f"Checking triggers in GetTimeSkill for: {input_text}")  #
-        return any(phrase in input_text.lower() for phrase in trigger_phrases)
+        trigger_phrases = ["what time is it", "what's the time", "tell me the time", "time"]
+        print(f"Checking triggers in GetTimeSkill for: {input_text}") 
+        # Check if any trigger phrase is at the beginning of the input
+        return any(input_text.lower().startswith(phrase) for phrase in trigger_phrases) 
