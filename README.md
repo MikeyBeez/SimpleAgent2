@@ -18,8 +18,10 @@ ollama pull llama3-chatqa
 ollama pull mxbai-embed-large
 
 Set up RAG with a knowledgebase.  You can start with the one below:
+make kb subdir and cd into it.
 Download https://databus.dbpedia.org/vehnem/text/short-abstracts/2021.05.01/short-abstracts_lang=en.ttl.bzip2
-
+unzip it. bunzip2 -k knowledge_base.bz2
+move convertrfd and short-abstracts_lang=en.ttl.bzip2 into ./kb.  
 Run the Chatbot:
 python main.py
 
