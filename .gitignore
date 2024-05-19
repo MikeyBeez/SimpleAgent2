@@ -163,3 +163,4 @@ conda-meta
 envs/
 conversation_memory.json
 chat_log.txt
+short-abstracts_lang\=en.ttl.bz2
