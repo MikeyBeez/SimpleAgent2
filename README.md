@@ -22,7 +22,10 @@ make kb subdir and cd into it.
 Download https://databus.dbpedia.org/vehnem/text/short-abstracts/2021.05.01/short-abstracts_lang=en.ttl.bzip2
 unzip it. bunzip2 -k knowledge_base.bz2
 move convertrfd and short-abstracts_lang=en.ttl.bzip2 into ./kb.  
-now you shoud have short-abstracts_lang=en.ttl.nt in your kb directory
+now you should have short-abstracts_lang=en.ttl.nt in your kb directory
+copy extract_json.py into kb/
+run extract_json and wait.  It takes a long time.
+
 Run the Chatbot:
 python main.py
 
