@@ -8,6 +8,7 @@ from routing import Router  # Don't import should_search, it's now accessed thro
 from langchain_community.embeddings import OllamaEmbeddings
 from context_manager import update_context # Import update_context
 from get_time_skill import GetTimeSkill
+from get_weather_skill import GetWeatherSkill
 import logging
 
 # Set up logging
@@ -32,7 +33,10 @@ class ChatManager:
 
         # Initialize available skills 
         self.get_time_skill = GetTimeSkill()
-        self.available_skills = [self.get_time_skill]
+        self.get_weather_skill = GetWeatherSkill(api_key=config.OPENWEATHERMAP_API_KEY,
+                                                 zip_code=config.ZIP_CODE)
+        self.available_skills = [self.get_time_skill, self.get_weather_skill]
+
 
     async def run_conversation(self):
         # Get the user's name if it's not already set
