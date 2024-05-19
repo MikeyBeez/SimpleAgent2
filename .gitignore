@@ -166,3 +166,5 @@ chat_log.txt
 short-abstracts_lang\=en.ttl.bz2
 short-abstracts_lang=en.ttl
 __pycache__
+=
+kb/
