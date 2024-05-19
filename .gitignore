@@ -162,4 +162,4 @@ cython_debug/
 conda-meta
 envs/
 conversation_memory.json
-
+chat_log.txt
