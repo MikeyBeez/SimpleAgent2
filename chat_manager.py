@@ -49,6 +49,9 @@ class ChatManager:
             else:
                 question = input("You: ") # question is a string containing the user's input
 
+            # Log the user input (question)
+            logging.info(f"User Input: {question}")
+
             # Check for special commands
             if question.lower() == "clear memory":
                 clear_memory()  # Clear the conversation memory file
@@ -82,7 +85,7 @@ class ChatManager:
             )  # formatted_prompt is a string containing the complete prompt for the LLM
 
              # Log the formatted prompt
-            logging.info(f"Prompt: {formatted_prompt}")
+            # logging.info(f"Prompt: {formatted_prompt}")
 
             # Generate the agent's response using streaming output
             print("Agent: ", end="") 
