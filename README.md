@@ -119,7 +119,7 @@ You can change how the chatbot talks and acts:
 
 **To use a custom skill, start your input with the wakeword "assistant" followed by a phrase or keyword that triggers the skill.**
 
-For example, if you have a skill called `TellJokeSkill`, you could trigger it with:
+For example, if you have a skill called `TellJokeSkill`, you could trigger it with:  "Assistant. tell a joke."
 
 
 ## If Something Goes Wrong
