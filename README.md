@@ -24,7 +24,8 @@ unzip it. bunzip2 -k knowledge_base.bz2
 move convertrfd and short-abstracts_lang=en.ttl.bzip2 into ./kb.  
 now you should have short-abstracts_lang=en.ttl.nt in your kb directory
 copy extract_json.py into kb/
-run extract_json and wait.  It takes a long time.
+run extract_json and wait. python extract_json.py.   It takes a long time.
+copy generate_embeddings.py into kb/ cd in and run it.  python generate_embeddings.py
 
 Run the Chatbot:
 python main.py
