@@ -26,18 +26,20 @@ class Router:
         Returns:
             str: The response to the user.
         """
-        if should_search(question, chat_history, self.llm, self.embeddings, self.chat_history_embeddings):
-            # ... (Your logic for performing a web search)
-            # Example (assuming you have a search object called `self.search`):
-            search_results = self.search.run(question)
-            return search_results
-        elif handle_skills(question, chat_history, available_skills):
-            # ... (Your logic for executing a skill)
-            # Example: 
-            return handle_skills(question, chat_history, available_skills) 
+        print(f"Question received in route(): {question}")  # Debugging statement
+
+        if question.lower().startswith("assistant"):  # Check for wakeword
+            print("Wakeword detected!") # Debugging statement
+            command = question[len("assistant"):].strip()
+            return handle_skills(command, chat_history, available_skills)  # Route to skills
         else:
-            # ... (Your logic for responding directly using the knowledge base)
-            return "I don't know."  # Placeholder for knowledge base response
+            # Regular routing logic (search or knowledge base)
+            if should_search(question, chat_history, self.llm, self.embeddings, self.chat_history_embeddings):
+                search_results = self.search.run(question)
+                return search_results
+            else:
+                # ... (Your logic for responding directly using the knowledge base)
+                return "I don't know."  # Placeholder for knowledge base response
 
         # Update the context
         update_context(question, chat_history, self.embeddings, self.chat_history_embeddings)

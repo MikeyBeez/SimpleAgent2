@@ -7,6 +7,7 @@ from entities import Entities
 from routing import Router  # Don't import should_search, it's now accessed through Router
 from langchain_community.embeddings import OllamaEmbeddings
 from context_manager import update_context # Import update_context
+from get_time_skill import GetTimeSkill
 import logging
 
 # Set up logging
@@ -29,8 +30,9 @@ class ChatManager:
         self.embeddings = OllamaEmbeddings(model="all-minilm")
         self.router = Router(self.llm, self.embeddings)
 
-        # Initialize available skills (empty for now)
-        self.available_skills = []
+        # Initialize available skills 
+        self.get_time_skill = GetTimeSkill()
+        self.available_skills = [self.get_time_skill]
 
     async def run_conversation(self):
         # Get the user's name if it's not already set
@@ -78,7 +80,7 @@ class ChatManager:
             formatted_prompt = MAIN_PROMPT.format(
                 chat_history=chat_history,
                 question=question,
-                search_results=response, 
+                search_results=response,
                 user_name=user_name
             )
 
@@ -100,8 +102,8 @@ class ChatManager:
             else:
                 chat_history += f"You: {question}\nAgent: {response}\n"
 
-            # Update the context vectorstore 
-            update_context(question, chat_history, self.embeddings, self.router.chat_history_embeddings) # Call the imported function 
+            # Update the context vectorstore
+            update_context(question, chat_history, self.embeddings, self.router.chat_history_embeddings)
 
             # Save the current interaction to memory
             asyncio.create_task(update_memory_async(memory, question, response, self.entities))
