@@ -7,6 +7,12 @@ from entities import Entities  # Import the entities module
 from routing import Router  # Import the Router class
 from sentence_transformers import SentenceTransformer  # Import SentenceTransformers
 from langchain_community.vectorstores import FAISS # Import FAISS from langchain_community
+import logging # Import logging here
+
+# Set up logging
+logging.basicConfig(filename='chat_log.txt', level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 class ChatManager:
     def __init__(self):
@@ -75,6 +81,9 @@ class ChatManager:
                 user_name=user_name
             )  # formatted_prompt is a string containing the complete prompt for the LLM
 
+             # Log the formatted prompt
+            logging.info(f"Prompt: {formatted_prompt}")
+
             # Generate the agent's response using streaming output
             print("Agent: ", end="") 
             response = "" # Initialize an empty string to store the response
@@ -83,6 +92,9 @@ class ChatManager:
                 print(chunk, end="", flush=True)  # Print the chunk immediately without a newline
 
             print()  # Print a newline after the response is complete
+
+             # Log the response
+            logging.info(f"Response: {response}")
 
             # Update the chat history with the current turn's conversation
             if user_name:
