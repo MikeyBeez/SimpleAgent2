@@ -11,14 +11,7 @@ class GetWeatherSkill:
         return self.get_noaa_weather(self.latitude, self.longitude)  # Call as method
 
     def trigger(self, input_text):
-        """Determines if the skill should be activated."""
-        trigger_phrases = [
-            "what's the weather", 
-            "get the weather forecast", 
-            "weather",
-            # ... Add more trigger phrases as needed
-        ]
-        return any(phrase in input_text.lower() for phrase in trigger_phrases)
+        return input_text.lower() == "weather"
 
     def get_noaa_weather(self, latitude, longitude):
         """Fetches basic weather data from NOAA, 

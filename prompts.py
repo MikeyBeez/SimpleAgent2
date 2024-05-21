@@ -30,17 +30,16 @@ Assistant: The capital of France is Paris. This information was confirmed by sea
 <|start_header_id|>user<|end_header_id|>
 """
 
+# Simplified MAIN_PROMPT (no Jinja needed)
 MAIN_PROMPT = PromptTemplate(
     input_variables=["chat_history", "question", "search_results", "user_name"],
-    template=f"""{SYSTEM_MESSAGE}
-    {{chat_history}}
-    {{user_name}}: {{question}}
+    template=r"""
+    {chat_history}
+    {user_name}: {question}
 
-    Search Results:
-    {{search_results}}
-    <|eot_id|>
-    <|start_header_id|>assistant<|end_header_id|>
-    Answer:"""
+    {search_results}
+
+    Answer:""" 
 )
 
 SHOULD_SEARCH_PROMPT = PromptTemplate(

@@ -1,7 +1,17 @@
 from search_logic import should_search
 from context_manager import update_context
 from skill_handler import handle_skills
-from langchain_community.tools import DuckDuckGoSearchRun 
+from langchain_community.tools import DuckDuckGoSearchRun
+import logging
+
+# Configure logging
+logging.basicConfig(
+    filename='chat_log.txt',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(message)s'
+)
+
+DO_NOTHING_TOKEN = "##DO_NOTHING##"
 
 class Router:
     """
@@ -12,7 +22,7 @@ class Router:
         self.llm = llm
         self.embeddings = embeddings
         self.chat_history_embeddings = []
-        self.search = DuckDuckGoSearchRun() 
+        self.search = DuckDuckGoSearchRun()
 
     def route(self, question, chat_history, available_skills):
         """
@@ -24,24 +34,31 @@ class Router:
             available_skills (list): A list of available Skill objects.
 
         Returns:
-            str: The response to the user.
+            str: The response to the user, or DO_NOTHING_TOKEN if a skill was handled.
         """
-        print(f"Question received in route(): {question}") 
+        logging.info(f"User question: {question}")  
 
-        if question.lower().startswith("assistant"): 
-            print("Wakeword detected!")
-            # Remove punctuation and split the command
-            command = question.split("assistant", 1)[1].strip().lstrip(" ,.;:") 
-            return handle_skills(command, chat_history, available_skills)  
+        # Check for "assistant" wakeword
+        if question.lower().startswith("assistant"):
+            logging.info("Assistant wakeword detected.")
+            command = question.lower().split("assistant", 1)[1].strip().lstrip(" ,.;:")
+            logging.info(f"Extracted command: {command}") 
 
-        else:
-            # Regular routing logic (search or knowledge base)
-            if should_search(question, chat_history, self.llm, self.embeddings, self.chat_history_embeddings):
-                search_results = self.search.run(question)
-                return search_results
+            # Call handle_skills() only inside the "assistant" wakeword block
+            skill_response = handle_skills(command, chat_history, available_skills) 
+            if skill_response:
+                logging.info("Skill triggered successfully.")
+                return DO_NOTHING_TOKEN  
             else:
-                # ... (Your logic for responding directly using the knowledge base)
-                return "I don't know." 
+                logging.info("No skill matched the command.")
 
-        # Update the context
-        update_context(question, chat_history, self.embeddings, self.chat_history_embeddings)
+        # Regular routing logic (for questions without the "assistant" wakeword) 
+        if should_search(question, chat_history, self.llm, self.embeddings, self.chat_history_embeddings):
+            logging.info("Decision: Performing a search.") 
+            search_results = self.search.run(question)
+            return search_results
+        else:
+            logging.info("Decision: Using knowledge base (not implemented).") 
+            return "I don't know."
+
+        update_context(question, response)  

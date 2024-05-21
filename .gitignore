@@ -168,3 +168,5 @@ short-abstracts_lang=en.ttl
 __pycache__
 =
 kb/
+my_kb
+oldfiles/
