@@ -1,6 +1,6 @@
-from search_logic import should_search
-from context_manager import update_context
-from skill_handler import handle_skills
+from chat_loop_modules.search_logic import should_search
+from chat_loop_modules.context_manager import update_context
+from chat_loop_modules.skill_handler import handle_skills
 from langchain_community.tools import DuckDuckGoSearchRun
 import logging
 

@@ -9,7 +9,7 @@ from prompts import MAIN_PROMPT, SHOULD_SEARCH_PROMPT
 from entities import Entities
 from routing import Router
 from langchain_community.embeddings import OllamaEmbeddings
-from context_manager import update_context
+from chat_loop_modules.context_manager import update_context
 from get_time_skill import GetTimeSkill
 from get_weather_skill import GetWeatherSkill
 from embedding_memory import EmbeddingMemory
