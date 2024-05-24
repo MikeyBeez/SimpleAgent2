@@ -37,7 +37,7 @@ def initialize_chatbot():
     # Correctly check for the collection's existence:
     try:
         # Try to get the collection
-        Chroma(persist_directory=persist_directory, embedding_function=embedding_model).get_collection(collection_name)
+        Chroma(persist_directory=persist_directory, embedding_function=embedding_model)._collection
         logging.info("ChromaDB collection already exists. Loading...")
     except:
         logging.info("Creating a new ChromaDB collection.")

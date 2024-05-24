@@ -4,7 +4,7 @@ from langchain.memory import ConversationBufferMemory
 from langchain.schema import BaseChatMessageHistory, HumanMessage, AIMessage
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from pydantic import BaseModel, Extra
-from context_manager import get_chat_history # Import the function
+from chat_loop_modules.context_manager import get_chat_history
 
 class EmbeddingMemory(ConversationBufferMemory):
     """
