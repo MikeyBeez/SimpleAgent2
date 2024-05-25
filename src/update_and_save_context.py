@@ -1,5 +1,5 @@
 import logging
-from context_manager import update_context
+from chat_loop_modules.context_manager import update_context
 
 def update_and_save_context(user_input, response, chat_manager):
     """Updates the context and saves it to ChromaDB."""

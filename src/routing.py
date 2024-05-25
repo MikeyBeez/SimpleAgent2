@@ -24,7 +24,7 @@ class Router:
         self.chat_history_embeddings = []
         self.search = DuckDuckGoSearchRun()
 
-    def route(self, question, chat_history, available_skills):
+    def route(self, question, available_skills, chat_history=None):
         """
         Determines whether to search, use the knowledge base, or execute a skill.
 
@@ -45,7 +45,7 @@ class Router:
             logging.info(f"Extracted command: {command}") 
 
             # Call handle_skills() only inside the "assistant" wakeword block
-            skill_response = handle_skills(command, chat_history, available_skills) 
+            skill_response = handle_skills(command, available_skills)
             if skill_response:
                 logging.info("Skill triggered successfully.")
                 return DO_NOTHING_TOKEN  

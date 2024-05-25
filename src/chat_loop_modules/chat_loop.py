@@ -2,7 +2,6 @@ import asyncio
 import logging
 from prompts import MAIN_PROMPT
 from .context_manager import update_context, get_chat_history
-from routing import DO_NOTHING_TOKEN  
 
 # Configure logging
 logging.basicConfig(
@@ -15,7 +14,6 @@ async def run_conversation(chat_manager):
     """Handles the main conversation loop."""
     logging.info("Starting conversation loop...")
 
-    # Main conversation loop
     while True:
         # Get user input
         user_name = chat_manager.entities.get_user_name()
@@ -26,16 +24,25 @@ async def run_conversation(chat_manager):
 
         logging.info(f"User Input: {question}")
 
-        # Check for special commands
+        # Handle special commands like "clear memory" and exit
         if question.lower() == "clear memory":
             logging.info("Clearing memory...")
             chat_manager.memory.vectorstore.delete_collection()
             print("Conversation memory cleared.")
             logging.info("Memory cleared.")
+            continue
 
         if question.lower() in ["quit", "exit", "bye"]:
             logging.info("Exiting conversation loop...")
             break
+
+        # Check for skill invocation
+        if "assistant" in question.lower(): 
+            logging.info("Assistant keyword detected, calling skill handler.")
+            response = chat_manager.router.route(question, chat_manager.available_skills)
+            print(f"Agent: {response}")
+            update_context(question, response)
+            continue  # Go to the next user input
 
         # Load relevant context from memory using embeddings
         logging.info("Loading context from memory...")
@@ -43,7 +50,7 @@ async def run_conversation(chat_manager):
         chat_history = context.get("history", "")
         logging.info(f"Loaded chat history: {chat_history}")
 
-        # Route the question:
+        # Route the question (for regular questions, not skills)
         logging.info("Routing question...")
         response = chat_manager.router.route(question, chat_history, chat_manager.available_skills)
         logging.info("Routing complete.")
@@ -53,10 +60,6 @@ async def run_conversation(chat_manager):
             logging.info("No route found, defaulting response...")
             response = "I'm not sure how to answer that."
             logging.info(f"Default response: {response}")
-
-        # Handle DO_NOTHING_TOKEN (skill already processed)
-        if response == DO_NOTHING_TOKEN:
-            continue  # Skip LLM processing and get the next input
 
         # Format the main prompt 
         logging.info("Formatting prompt...")
@@ -84,7 +87,7 @@ async def run_conversation(chat_manager):
 
         # Update the context vectorstore 
         logging.info("Updating context...")
-        update_context(question, response)  # Corrected call
+        update_context(question, response) 
         logging.info("Context updated.")
 
         # Save the current interaction to memory (using embeddings)
