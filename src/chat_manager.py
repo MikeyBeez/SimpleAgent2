@@ -105,7 +105,8 @@ class ChatManager:
 
             # Load relevant context from memory using embeddings
             logging.info("Loading context from memory...")
-            context = self.memory.load_memory_variables({"question": question})
+            context = self.memory.retrieve_vdb_context({"question": question})
+            print(context)
             chat_history = context.get("history", "")
             logging.info(f"Loaded chat history: {chat_history}")
 

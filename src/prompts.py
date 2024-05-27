@@ -24,7 +24,7 @@ Here's an example interaction:
 
 User: What is the capital of France?
 Search Results: ... (search results about Paris)
-Assistant: The capital of France is Paris. This information was confirmed by searching online. 
+Assistant: The capital of France is Paris. this information was confirmed by searching online. 
 
 <|eot_id|>
 <|start_header_id|>user<|end_header_id|>
@@ -33,11 +33,15 @@ Assistant: The capital of France is Paris. This information was confirmed by sea
 # Simplified MAIN_PROMPT (no Jinja needed)
 MAIN_PROMPT = PromptTemplate(
     input_variables=["chat_history", "question", "search_results", "user_name"],
-    template=r"""
+    template="""
     {chat_history}
     {user_name}: {question}
 
+    In order to provide a helpful and accurate response, I have also searched for information on the topic:
+
     {search_results}
+
+    Please refer to these search results as necessary. If you require additional assistance, please let me know.
 
     Answer:""" 
 )
@@ -48,7 +52,13 @@ SHOULD_SEARCH_PROMPT = PromptTemplate(
     <|start_header_id|>system<|end_header_id|>
     Given the user's question and the previous conversation, determine if a search is necessary to provide a helpful and accurate answer. 
 
-    Respond with "yes" if a search is needed, and "no" if the question can be answered without a search.
+    Consider the following factors:
+
+    1. The question is complex or difficult to answer without searching: {{question}}
+    2. There has been no recent activity related to this topic in the conversation: {{chat_history}}
+    3. The user may be seeking information not directly related to the current conversation context: {{question}}
+
+    Based on these factors, respond with "yes" if a search is needed, and "no" if the question can be answered without a search.
 
     Question: {{question}}
     Chat History:
