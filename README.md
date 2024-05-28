@@ -1,5 +1,5 @@
 # SimpleAgent2: A Chatbot That Remembers, Learns, and Uses Skills
-*(This branch is not working currently.  It's a giant refactoring with a lot of new bells and whistles.  Be patient and help if you can.)*
+*(This branch is minimally working currently.  It's a giant refactoring with a lot of new bells and whistles.  Be patient and help if you can.)*
 
 This chatbot is like a friend you can talk to and ask questions. It's built with some cool AI technology, and it can:
 
