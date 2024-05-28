@@ -1,0 +1,23 @@
+async def run_conversation(self):
+        """
+        Handles the main conversation loop. 
+        """
+        logging.info("Starting conversation loop...")
+
+        # Get the user's name if it's not already set
+
+        # Main conversation loop
+        while True:
+            # Get user input
+            # Log the user input (question)
+            # Check for special commands
+            # Load relevant context from memory using embeddings
+            # Determine if a search is needed, a skill should be used,
+            # or the knowledge base should be queried
+            # Check if the response is None (meaning no route was found)
+            # Format the main prompt
+            # Generate the agent's response using streaming output
+            # Log the response
+            # Update the chat history
+            # Update the context vectorstore 
+            # Save the current interaction to memory (using embeddings)
