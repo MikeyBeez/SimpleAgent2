@@ -170,3 +170,4 @@ __pycache__
 kb/
 my_kb
 oldfiles/
+config.py
