@@ -6,8 +6,8 @@ from .context_manager import update_context, get_chat_history
 # Configure logging
 logging.basicConfig(
     filename='chat_log.txt',
-    level=logging.INFO, 
-    format='%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(message)s' 
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(message)s'
 )
 
 async def run_conversation(chat_manager):
@@ -37,11 +37,23 @@ async def run_conversation(chat_manager):
             break
 
         # Check for skill invocation
-        if "assistant" in question.lower(): 
-            logging.info("Assistant keyword detected, calling skill handler.")
-            response = chat_manager.router.route(question, chat_manager.available_skills)
-            print(f"Agent: {response}")
-            update_context(question, response)
+        if "assistant" in question.lower():
+            logging.info("Assistant keyword detected, checking for skills.")
+            command = question.lower().split("assistant", 1)[1].strip()
+            for skill in chat_manager.available_skills:
+                if skill.trigger(command):
+                    logging.info(f"Skill triggered: {skill.__class__.__name__}")
+                    response = skill.process(command)
+                    print(f"Agent: {response}")
+                    update_context(question, response)
+                    break
+            else:
+                logging.info("No skill matched the command, passing to router.")
+                context = chat_manager.memory.load_memory_variables({"question": question})
+                chat_history = context.get("history", "")
+                response = chat_manager.router.route(question, chat_history, chat_manager.available_skills)
+                print(f"Agent: {response}")
+                update_context(question, response)
             continue  # Go to the next user input
 
         # Load relevant context from memory using embeddings
@@ -61,7 +73,7 @@ async def run_conversation(chat_manager):
             response = "I'm not sure how to answer that."
             logging.info(f"Default response: {response}")
 
-        # Format the main prompt 
+        # Format the main prompt
         logging.info("Formatting prompt...")
         formatted_prompt = MAIN_PROMPT.format(
             chat_history=chat_history,
@@ -85,12 +97,12 @@ async def run_conversation(chat_manager):
         # Log the response
         logging.info(f"Response: {response}")
 
-        # Update the context vectorstore 
+        # Update the context vectorstore
         logging.info("Updating context...")
-        update_context(question, response) 
+        update_context(question, response)
         logging.info("Context updated.")
 
         # Save the current interaction to memory (using embeddings)
         logging.info("Saving context to memory...")
         chat_manager.memory.save_context({"input": question}, {"output": response})
-        logging.info("Context saved.") 
+        logging.info("Context saved.")

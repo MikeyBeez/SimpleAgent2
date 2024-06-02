@@ -5,6 +5,7 @@ from langchain.schema import BaseChatMessageHistory, HumanMessage, AIMessage
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from pydantic import BaseModel, Extra
 from chat_loop_modules.context_manager import get_chat_history
+from config import SIMILARITY_THRESHOLD, TOP_N_RESULTS
 
 class EmbeddingMemory(ConversationBufferMemory):
     """
@@ -29,8 +30,23 @@ class EmbeddingMemory(ConversationBufferMemory):
 
         question_embedding = self.vectorstore._embedding_function.embed_query(question)
 
-        # Retrieve top 5 most similar results (not used for now)
-        results = self.vectorstore.similarity_search_by_vector(question_embedding, k=5)
+        # Retrieve top N most similar results based on similarity threshold
+        results = self.vectorstore.similarity_search_by_vector(
+            question_embedding,
+            k=TOP_N_RESULTS,
+            score_threshold=SIMILARITY_THRESHOLD
+        )
+
+        # Print the retrieved embeddings and convert them into English tokens
+        for i, result in enumerate(results):
+            print(f"Embedding {i+1}:")
+            print(result.embedding)
+
+            # Convert the embedding into English tokens
+            tokens = self.vectorstore._embedding_function.decode(result.embedding)
+            print(f"English tokens {i+1}:")
+            print(tokens)
+            print()
 
         # Get the chat history directly:
         chat_history = get_chat_history() 
@@ -85,4 +101,4 @@ class EmbeddingMemory(ConversationBufferMemory):
         summary_message = summarization_chain.invoke({"chat_history": messages})
 
         self.chat_memory.clear()  
-        self.chat_memory.add_message(summary_message) 
+        self.chat_memory.add_message(summary_message)

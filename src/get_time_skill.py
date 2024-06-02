@@ -2,18 +2,13 @@ import datetime
 
 class GetTimeSkill:
     def __init__(self):
-        pass  # Remove print_current_time() from __init__
+        pass
 
     def process(self, input_text):
         now = datetime.datetime.now()
         current_time = now.strftime("%I:%M %p")
         return f"The current time is {current_time}."
 
-    # Remove the trigger() method
-
-    def print_current_time(self): # You can keep this for debugging
-        now = datetime.datetime.now()
-        current_time = now.strftime("%I:%M %p")
-        print(f"The current time is: {current_time}")
-
-# Make similar changes to GetWeatherSkill
+    def trigger(self, command):
+        time_keywords = ["time", "current time", "what time", "what's the time"]
+        return any(keyword in command.lower() for keyword in time_keywords)
