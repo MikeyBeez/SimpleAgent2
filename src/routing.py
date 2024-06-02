@@ -24,7 +24,7 @@ class Router:
         self.chat_history_embeddings = []
         self.search = DuckDuckGoSearchRun()
 
-    def route(self, question, available_skills, chat_history=None):
+    def route(self, question, chat_history, available_skills):
         """
         Determines whether to search, use the knowledge base, or execute a skill.
 
@@ -48,17 +48,19 @@ class Router:
             skill_response = handle_skills(command, available_skills)
             if skill_response:
                 logging.info("Skill triggered successfully.")
-                return DO_NOTHING_TOKEN  
+                return skill_response
             else:
                 logging.info("No skill matched the command.")
 
         # Regular routing logic (for questions without the "assistant" wakeword) 
         if should_search(question, chat_history, self.llm, self.embeddings, self.chat_history_embeddings):
-            logging.info("Decision: Performing a search.") 
-            search_results = self.search.run(question)
-            return search_results
+            logging.info("Decision: Performing a search.")
+            search_quality_reflection = "The search results provide some relevant information to answer the question, but may not be comprehensive enough to fully address all aspects of the query."
+            search_quality_score = 3  # Assuming a scale of 1-5
+            result = self.search.run(question)
+            return f"Search Quality Reflection: {search_quality_reflection}\nSearch Quality Score: {search_quality_score}\n\nSearch Results:\n{result}"
         else:
             logging.info("Decision: Using knowledge base (not implemented).") 
-            return "I don't know."
+            return "I don't have enough information to answer this question based on my current knowledge. I would need to do additional research to provide a helpful response."
 
-        update_context(question, response)  
+        update_context(question, response)

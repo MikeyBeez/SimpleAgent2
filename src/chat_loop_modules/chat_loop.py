@@ -2,13 +2,9 @@ import asyncio
 import logging
 from prompts import MAIN_PROMPT
 from .context_manager import update_context, get_chat_history
+from logging_config import configure_logging
 
-# Configure logging
-logging.basicConfig(
-    filename='chat_log.txt',
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(message)s'
-)
+configure_logging()
 
 async def run_conversation(chat_manager):
     """Handles the main conversation loop."""
@@ -25,16 +21,31 @@ async def run_conversation(chat_manager):
         logging.info(f"User Input: {question}")
 
         # Handle special commands like "clear memory" and exit
-        if question.lower() == "clear memory":
+        if question.lower() == "/clear memory":
             logging.info("Clearing memory...")
             chat_manager.memory.vectorstore.delete_collection()
             print("Conversation memory cleared.")
             logging.info("Memory cleared.")
             continue
 
-        if question.lower() in ["quit", "exit", "bye"]:
+        if question.lower() in ["/quit", "/exit", "/bye"]:
             logging.info("Exiting conversation loop...")
             break
+
+        if question.lower() == "/help":
+            logging.info("Help request...")
+            help_text = """
+Available commands:
+- /clear memory: Clears the conversation memory
+- /help: Displays this help information
+- /quit, /exit, /bye: Exits the chatbot
+
+Available skills:
+"""
+            for skill in chat_manager.available_skills:
+                help_text += f"- {skill.__class__.__name__}: {skill.description}\n"
+            print(help_text)
+            continue
 
         # Check for skill invocation
         if "assistant" in question.lower():
