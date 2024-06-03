@@ -1,24 +1,26 @@
 # SimpleAgent2: A Chatbot That Remembers, Learns, and Uses Skills
-*(This branch is minimally working currently.  It's a giant refactoring with a lot of new bells and whistles.  Be patient and help if you can.)*
 
-This chatbot is like a friend you can talk to and ask questions. It's built with some cool AI technology, and it can:
+SimpleAgent2 is an advanced chatbot framework that combines the power of natural language processing, memory management, and modular skills to create intelligent and engaging conversational experiences. With SimpleAgent2, developers can build chatbots that understand user intents, provide relevant information, and execute specific tasks.
 
-* **Remember your conversations:** So it doesn't forget what you've talked about.
-* **Search the internet:** To find answers to your questions.
-* **Learn from a huge knowledge base:** To give you even better responses. 
-* **Use custom skills:** To perform specific tasks or provide specialized information.
+## Key Features
+
+* **Contextual Memory:** SimpleAgent2 uses embeddings to store and retrieve conversation history, allowing the chatbot to maintain context and provide more accurate responses.
+* **Modular Skills:** The framework supports the creation of custom skills, enabling developers to extend the chatbot's capabilities and handle specific tasks or queries.
+* **Flexible Architecture:** SimpleAgent2 follows a modular design, making it easy to customize and integrate with various language models, search engines, and external APIs.
+* **Extensible Knowledge Base:** The chatbot can leverage a knowledge base to provide answers to user queries, and developers can easily integrate their own knowledge sources.
+* **Search Capabilities:** SimpleAgent2 includes a search component that allows the chatbot to retrieve relevant information from external sources when needed.
 
 ## Getting Started
 
-This chatbot code is hosted on GitHub. Here's how to get a copy on your computer:
+To get started with SimpleAgent2, follow these steps:
 
 1. **Fork the Repository:**
    - Go to the project's GitHub page: https://github.com/MikeyBeez/SimpleAgent2
    - Click the "Fork" button in the top right corner. This will create your own copy of the project that you can work on.
 
 2. **Clone Your Fork:**
-   - Go to your forked repository on GitHub. 
-   - Click the green "Code" button and copy the URL. 
+   - Go to your forked repository on GitHub.
+   - Click the green "Code" button and copy the URL.
    - Open your terminal and run the following command, replacing `<your_repository_url>` with the copied URL:
      ```bash
      git clone <your_repository_url>
@@ -57,15 +59,15 @@ This chatbot code is hosted on GitHub. Here's how to get a copy on your computer
        ```bash
        bunzip2 -k short-abstracts_lang=en.ttl.bz2
        ```
-     - This will create a file named `short-abstracts_lang=en.ttl` in your `kb` directory. 
+     - This will create a file named `short-abstracts_lang=en.ttl` in your `kb` directory.
 
    - **Prepare the Conversion Tools:**
-     - Copy the files `extract_json.py` and `generate_embeddings.py` from the main project directory into the `kb` directory. 
+     - Copy the files `extract_json.py` and `generate_embeddings.py` from the main project directory into the `kb` directory.
 
    - **Extract Text from the Dataset:**
      - While still in the `kb` directory in your terminal, run the following script:
        ```bash
-       python extract_json.py 
+       python extract_json.py
        ```
      - This will create a new file named `extracted_kb.json`.
      - **Important:** This process might take a few hours.
@@ -76,12 +78,15 @@ This chatbot code is hosted on GitHub. Here's how to get a copy on your computer
        python generate_embeddings.py
        ```
      - This will create a new file named `kb_with_embeddings.json`.
-     - **Important:** This can take a very long time (possibly more than 20 hours). 
+     - **Important:** This can take a very long time (possibly more than 20 hours).
 
    - **ChromaDB:** The chatbot uses ChromaDB, a special database, to store and quickly search the knowledge base embeddings. ChromaDB will create its data files in the `my_kb` directory.
 
-5.  mv config.sample.py config.py
-    then add you api keys
+5. **Configuration:**
+   - Create a copy of the `config.sample.py` file and rename it to `config.py`.
+   - Open `config.py` in a text editor and replace the placeholders with your actual API keys and desired settings.
+   - Save the `config.py` file.
+   - **Important:** Make sure to keep your `config.py` file secure and do not share it publicly, as it contains sensitive information like API keys.
 
 6. **Run the Chatbot:**
    - `python main.py`
@@ -89,95 +94,73 @@ This chatbot code is hosted on GitHub. Here's how to get a copy on your computer
 ## Chatting with the Bot
 
 * The chatbot will ask for your name.
-* You can type messages and ask it questions. 
-* To use a custom skill, start your input with the wakeword "**assistant**" followed by a phrase or keyword that triggers the skill.  
-* For example:
-
+* You can type messages and ask it questions.
+* To use a custom skill, start your input with the wakeword "**assistant**" followed by a phrase or keyword that triggers the skill.
 * Try asking it things like:
- - "What's the capital of France?"
- - "How do you make a pizza?"
-* To clear the chatbot's memory, type: `clear memory`
-* To exit the chatbot, type: `quit`, `exit`, or `bye`.
+  - "What's the capital of France?"
+  - "How do you make a pizza?"
+* To clear the chatbot's memory, type: `/clear memory`
+* To get help and see available commands, type: `/help`
+* To exit the chatbot, type: `/quit`, `/exit`, or `/bye`.
 
 ## Making It Your Own
 
 You can change how the chatbot talks and acts:
 
-* **Change its personality:**  Edit the messages in the `prompts.py` file. 
-* **Use a different search engine:**  If you don't like DuckDuckGo, you can replace it with another search engine. 
+* **Change its personality:** Edit the messages in the `prompts.py` file.
+* **Use a different search engine:** If you don't like DuckDuckGo, you can replace it with another search engine.
 * **Try a different AI model:** Ollama has different models you can experiment with.
 * **Add new skills:** Follow the instructions in the **Adding New Skills** section.
 
 ## Adding New Skills
 
 1. **Create a Skill Class:**
-* Create a new Python file in the project's root directory (for example, `my_new_skill.py`).
-* Define a class that inherits from the `Skill` class.
-* Implement the `process(self, input_text)` method to perform the skill's action.
-* Implement the `trigger(self, input_text)` method to determine when the skill should be activated.  The `trigger` method should check for phrases or keywords *after* the "assistant" wakeword.
+   - Create a new Python file in the project's `skills` directory (for example, `my_new_skill.py`).
+   - Define a class that inherits from the `Skill` class.
+   - Implement the `process(self, input_text)` method to perform the skill's action.
+   - Implement the `trigger(self, input_text)` method to determine when the skill should be activated. The `trigger` method should check for phrases or keywords *after* the "assistant" wakeword.
 
 2. **Register Your Skill:**
-* In the `chat_manager.py` file, import your new skill class.
-* Create an instance of your skill class in the `ChatManager`'s `__init__` method.
-* Add the instance to the `available_skills` list. 
+   - In the `chat_manager.py` file, import your new skill class.
+   - Create an instance of your skill class in the `ChatManager`'s `__init__` method.
+   - Add the instance to the `available_skills` list.
 
 **To use a custom skill, start your input with the wakeword "assistant" followed by a phrase or keyword that triggers the skill.**
 
-For example, if you have a skill called `TellJokeSkill`, you could trigger it with:  "Assistant. tell a joke."
+For example, if you have a skill called `TellJokeSkill`, you could trigger it with: "Assistant, tell a joke."
 
+## Debugging and Troubleshooting
 
-## If Something Goes Wrong
+SimpleAgent2 provides several tools and techniques to assist developers in identifying and resolving issues:
 
-* **Check the error messages:**  If you get an error message, read it carefully. It might tell you what's wrong.
-* **Make sure Ollama is running:**  The chatbot needs Ollama to work.
-* **Be patient:**  Extracting information from the knowledge base can take a long time. 
+* **Logging:** The framework uses the `logging` module to capture important events, errors, and information during the chatbot's execution. Developers can configure the logging settings in the `config.py` file and analyze the generated logs to diagnose issues.
+* **Error Handling:** SimpleAgent2 includes error handling mechanisms to gracefully handle exceptions and provide meaningful error messages. Developers can add custom error handling logic in the relevant files to handle specific exceptions and provide informative feedback to users.
+* **Testing:** The framework includes a suite of unit tests to ensure the correctness of individual components. Developers can run these tests using the `pytest` framework and add new tests to validate the functionality of custom skills, memory management, and other modifications.
+* **Interactive Debugging:** Developers can use interactive debugging tools, such as Python's built-in `pdb` module or IDEs with debugging capabilities, to step through the code, inspect variables, and identify the root cause of issues.
+* **Monitoring and Analytics:** Implementing monitoring and analytics tools can help developers track the chatbot's performance, identify usage patterns, and detect anomalies. Popular tools like Prometheus, Grafana, or custom logging solutions can be integrated with SimpleAgent2 to gain insights into the chatbot's behavior and user interactions.
 
-## Want to Help?
+## Contributing
 
-* **Report problems:** If you find any bugs, let us know!
-* **Share your ideas:**  Have ideas for new features? Tell us about them!
+We welcome contributions to SimpleAgent2! If you'd like to contribute, please follow these steps:
 
-## System Architecture
+1. Fork the repository on GitHub.
+2. Create a new branch for your feature or bug fix.
+3. Make your changes and ensure that the code passes all tests.
+4. Submit a pull request describing your changes and their benefits.
 
-The chatbot's code is organized into several modules:
+Please make sure to adhere to the project's coding style and guidelines.
 
-**Core Components:**
+## License
 
-* **`chat_manager.py`:** Initializes the LLM, search engine, entities, embeddings, and the router. Runs the main conversation loop. 
-* **`prompts.py`:**  Defines prompt templates for the LLM.
-* **`memory.py`:**  Handles conversation history storage and retrieval.
-* **`entities.py`:**  Keeps track of user information.
-* **`routing.py`:**  Contains the `Router` class, which decides how to handle user input (search, skills, or knowledge base).
+SimpleAgent2 is released under the [MIT License](LICENSE).
 
-**Refactored Modules:**
+## Acknowledgements
 
-* **`search_logic.py`:**  Determines if a web search is needed based on the user's question and conversation history.
-* **`context_manager.py`:**  Updates the context vectorstore with new questions for semantic similarity checks.
-* **`skill_handler.py`:**  Checks if any registered skills should be triggered and executes them. 
+We would like to express our gratitude to the open-source community for their valuable contributions and the developers of the libraries and tools used in SimpleAgent2.
 
-**Knowledge Base:**
+## Contact
 
-- **`kb` directory:**  Contains the knowledge base data and processing scripts.
-- **`extract_json.py` and `generate_embeddings.py`:**  Scripts to process and embed the knowledge base. 
-- **ChromaDB:** A vector database for efficient knowledge base search. 
+If you have any questions, suggestions, or feedback, please feel free to contact us 
+opening an issue.
 
-**Skills:**
-
-* **`get_time_skill.py`:**  A skill to get the current time.
-* **(Add your new skill files here)**
-
-**Main Program:**
-
-* **`main.py`:**  The main program that sets up and runs the chatbot.
-
-**Customization and Extension:**
-
-The modular design makes it easy to customize the chatbot:
-
-* **Prompts:** Modify the prompts in `prompts.py` to change the chatbot's personality.
-* **Search Engine:** Replace DuckDuckGo with a different search engine.
-* **Embedding Model:** Use different embedding models for semantic similarity.
-* **Knowledge Base:** Update or replace the knowledge base data.
-* **Skills:** Add new skills to extend the chatbot's capabilities.
-
-Let's chat! 😊 
+Happy chatbot building with SimpleAgent2!
