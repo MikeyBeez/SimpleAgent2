@@ -15,6 +15,7 @@ from get_weather_skill import GetWeatherSkill
 from embedding_memory import EmbeddingMemory
 from langchain_community.vectorstores import Chroma
 import logging
+import config
 
 # Set up logging
 logging.basicConfig(filename='chat_log.txt', level=logging.INFO,
@@ -25,12 +26,10 @@ class ChatManager:
     Manages the conversation flow, including memory, routing, and responses.
     """
     def __init__(self):
-        logging.info("ChatManager - Initializing ChatManager")
-
         # Initialize the Ollama language model
-        logging.info("ChatManager - Initializing Ollama language model")
-        self.llm = Ollama(model="llama3-chatqa")
-        logging.info("ChatManager - Ollama language model initialized: %s", self.llm)
+        logging.info("Initializing Ollama language model...")
+        self.llm = Ollama(model=config.llm_model_name)
+        logging.info("Ollama language model initialized.")
 
         # Initialize the DuckDuckGo search tool
         logging.info("ChatManager - Initializing DuckDuckGo search tool")

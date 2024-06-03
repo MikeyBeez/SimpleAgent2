@@ -58,9 +58,17 @@ class Router:
             search_quality_reflection = "The search results provide some relevant information to answer the question, but may not be comprehensive enough to fully address all aspects of the query."
             search_quality_score = 3  # Assuming a scale of 1-5
             result = self.search.run(question)
-            return f"Search Quality Reflection: {search_quality_reflection}\nSearch Quality Score: {search_quality_score}\n\nSearch Results:\n{result}"
+            search_results = f"Search Quality Reflection: {search_quality_reflection}\nSearch Quality Score: {search_quality_score}\n\nSearch Results:\n{result}"
         else:
             logging.info("Decision: Using knowledge base (not implemented).") 
-            return "I don't have enough information to answer this question based on my current knowledge. I would need to do additional research to provide a helpful response."
+            search_results = "I don't have enough information in my knowledge base to answer this question confidently."
+
+        # Generate response using the LLM
+        logging.info("Generating response using LLM...")
+        prompt = f"{chat_history}\nUser: {question}\nAssistant: {search_results}\nAssistant:"
+        llm_result = self.llm.generate([prompt])
+        response = llm_result.generations[0][0].text  # Retrieve the generated response from the LLMResult object
+        logging.info(f"Generated response: {response}")
 
         update_context(question, response)
+        return response
