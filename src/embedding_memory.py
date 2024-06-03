@@ -13,6 +13,9 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(message)s'
 )
 
+TOP_N_RESULTS = 5  # Adjust the value as needed
+SIMILARITY_THRESHOLD = 0.8  # Adjust the value as needed
+
 class EmbeddingMemory(ConversationBufferMemory):
     """
     Memory class using embeddings to store and retrieve conversation history.
@@ -34,8 +37,11 @@ class EmbeddingMemory(ConversationBufferMemory):
         inputs = {"question": question}
         question_embedding = self.vectorstore._embedding_function.embed_query(question)
 
-        # Retrieve top 5 most similar results (not used for now)
-        results = self.vectorstore.similarity_search_by_vector(question_embedding, k=5)
+        # Retrieve top N most similar results
+        results = self.vectorstore.similarity_search_by_vector(
+            question_embedding,
+            k=TOP_N_RESULTS
+        )
 
         # Get the chat history directly:
         chat_history = get_chat_history()
@@ -50,19 +56,42 @@ class EmbeddingMemory(ConversationBufferMemory):
         return {"history": chat_history}
 
     def save_context(self, inputs, outputs):
-        """Saves the current interaction to memory and the vectorstore. """
+        """
+        Saves the current interaction to memory and the vectorstore.
+        """
         logging.info("Saving context")
-        text = f"User: {inputs['input']}\nChatbot: {outputs['output']}"
-        embedding = self.vectorstore._embedding_function.embed_query(text)
 
-        # Provide a dictionary or None for metadatas
-        metadata = {"source": "conversation"}
-        self.vectorstore.add_texts([text], embeddings=[embedding], metadatas=[metadata])
+        # Get the user input and chatbot response
+        user_input = inputs['input']
+        chatbot_response = outputs['output']
 
-        # Update the base ConversationBufferMemory
+        # Create the question-answer pair text
+        qa_pair_text = f"User: {user_input}\nChatbot: {chatbot_response}"
+
+        # Generate the embedding for the question-answer pair
+        qa_pair_embedding = self.vectorstore._embedding_function.embed_query(qa_pair_text)
+
+        # Create metadata for the question-answer pair
+        metadata = {
+            "user_input": user_input,
+            "chatbot_response": chatbot_response,
+            "source": "conversation"
+        }
+
+        # Add the question-answer pair text, embedding, and metadata to the vectorstore
+        self.vectorstore.add_texts(
+            texts=[qa_pair_text],
+            embeddings=[qa_pair_embedding],
+            metadatas=[metadata]
+        )
+
+        # Update the base ConversationBufferMemory with the user input and chatbot response
         super().save_context(inputs, outputs)
 
+        # Increment the turn count
         self.turn_count += 1
+
+        # Summarize the conversation history if the turn count reaches the summary frequency
         if self.turn_count % self._summary_frequency == 0:
             self.summarize_history(inputs, outputs)
 

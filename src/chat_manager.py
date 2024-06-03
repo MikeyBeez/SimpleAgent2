@@ -18,59 +18,62 @@ import logging
 
 # Set up logging
 logging.basicConfig(filename='chat_log.txt', level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
+                    format='%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(message)s')
 
 class ChatManager:
     """
     Manages the conversation flow, including memory, routing, and responses.
     """
     def __init__(self):
+        logging.info("ChatManager - Initializing ChatManager")
+
         # Initialize the Ollama language model
-        logging.info("Initializing Ollama language model...")
+        logging.info("ChatManager - Initializing Ollama language model")
         self.llm = Ollama(model="llama3-chatqa")
-        logging.info("Ollama language model initialized.")
+        logging.info("ChatManager - Ollama language model initialized: %s", self.llm)
 
         # Initialize the DuckDuckGo search tool
-        logging.info("Initializing DuckDuckGo search tool...")
+        logging.info("ChatManager - Initializing DuckDuckGo search tool")
         self.search = DuckDuckGoSearchRun()
-        logging.info("DuckDuckGo search tool initialized.")
+        logging.info("ChatManager - DuckDuckGo search tool initialized: %s", self.search)
 
         # Create an instance of the Entities class (for user info)
-        logging.info("Initializing Entities class...")
+        logging.info("ChatManager - Initializing Entities class")
         self.entities = Entities()
-        logging.info("Entities class initialized.")
+        logging.info("ChatManager - Entities class initialized: %s", self.entities)
 
         # Initialize the embedding model using the config file
-        logging.info("Initializing embedding model...")
+        logging.info("ChatManager - Initializing embedding model")
         self.embedding_model = OllamaEmbeddings(model=config.embedding_model_name)
         self.vectorstore = Chroma("my_chat_history", embedding_function=self.embedding_model)
-        logging.info("Embedding model initialized.")
+        logging.info("ChatManager - Embedding model initialized: %s", self.embedding_model)
+        logging.info("ChatManager - Vectorstore initialized: %s", self.vectorstore)
 
-        # Initialize EmbeddingMemory 
-        logging.info("Initializing EmbeddingMemory...")
-        self.memory = EmbeddingMemory(self.vectorstore, self.llm, summary_frequency=3) 
-        logging.info("EmbeddingMemory initialized.")
+        # Initialize EmbeddingMemory
+        logging.info("ChatManager - Initializing EmbeddingMemory")
+        self.memory = EmbeddingMemory(self.vectorstore, self.llm, summary_frequency=3)
+        logging.info("ChatManager - EmbeddingMemory initialized: %s", self.memory)
 
         # Initialize available skills
-        logging.info("Initializing skills...")
+        logging.info("ChatManager - Initializing skills")
         self.get_time_skill = GetTimeSkill()
         self.get_weather_skill = GetWeatherSkill(latitude=config.latitude, longitude=config.longitude)
         self.available_skills = [self.get_time_skill, self.get_weather_skill]
-        logging.info("Skills initialized.")
+        logging.info("ChatManager - Skills initialized: %s", self.available_skills)
 
-        # Initialize the router with OllamaEmbeddings 
-        logging.info("Initializing router...")
+        # Initialize the router with OllamaEmbeddings
+        logging.info("ChatManager - Initializing router")
         self.embeddings = OllamaEmbeddings(model="all-minilm")
         self.router = Router(self.llm, self.embeddings)
-        logging.info("Router initialized.")
+        logging.info("ChatManager - Router initialized: %s", self.router)
 
-        # NO RETURN STATEMENT HERE
+        logging.info("ChatManager - ChatManager initialization complete")
 
     async def run_conversation(self):
         """
-        Handles the main conversation loop. 
+        Handles the main conversation loop.
         """
-        logging.info("Starting conversation loop...")
+        logging.info("ChatManager - Starting conversation loop")
 
         # Get the user's name if it's not already set
         if not self.entities.get_user_name():
@@ -78,7 +81,7 @@ class ChatManager:
             print(f"Hello, {user_name}!")
             print("How can I help you?")
             self.entities.set_user_name(user_name)
-            logging.info(f"User name set to {user_name}")
+            logging.info("ChatManager - User name set: %s", user_name)
 
         # Main conversation loop
         while True:
@@ -90,71 +93,69 @@ class ChatManager:
                 question = input("You: ")
 
             # Log the user input (question)
-            logging.info(f"User Input: {question}")
+            logging.info("ChatManager - User input: %s", question)
 
             # Check for special commands
             if question.lower() == "clear memory":
-                logging.info("Clearing memory...")
+                logging.info("ChatManager - Clearing memory")
                 self.memory.vectorstore.delete_collection()  # Clear Chroma collection
                 print("Conversation memory cleared.")
-                logging.info("Memory cleared.")
+                logging.info("ChatManager - Memory cleared")
 
             if question.lower() in ["quit", "exit", "bye"]:
-                logging.info("Exiting conversation loop...")
+                logging.info("ChatManager - Exiting conversation loop")
                 break
 
             # Load relevant context from memory using embeddings
-            logging.info("Loading context from memory...")
+            logging.info("ChatManager - Loading context from memory")
             context = self.memory.retrieve_vdb_context({"question": question})
-            print(context)
             chat_history = context.get("history", "")
-            logging.info(f"Loaded chat history: {chat_history}")
+            logging.info("ChatManager - Loaded chat history: %s", chat_history)
 
             # Determine if a search is needed, a skill should be used,
             # or the knowledge base should be queried
-            logging.info("Routing question...")
+            logging.info("ChatManager - Routing question")
             response = self.router.route(question, chat_history, self.available_skills)
-            logging.info("Routing complete.")
+            logging.info("ChatManager - Routing complete, response: %s", response)
 
             # Check if the response is None (meaning no route was found)
             if response is None:
-                logging.info("No route found, defaulting response...")
+                logging.warning("ChatManager - No route found, using default response")
                 response = "I'm not sure how to answer that."
-                logging.info(f"Default response: {response}")
+                logging.info("ChatManager - Default response: %s", response)
 
             # Format the main prompt
-            logging.info("Formatting prompt...")
+            logging.info("ChatManager - Formatting prompt")
             formatted_prompt = MAIN_PROMPT.format(
                 chat_history=chat_history,
                 question=question,
                 search_results=response,
                 user_name=user_name
             )
-            logging.info(f"Formatted prompt: {formatted_prompt}")
+            logging.debug("ChatManager - Formatted prompt: %s", formatted_prompt)
 
             # Generate the agent's response using streaming output
             print("Agent: ", end="")
             response = ""
-            logging.info("Generating response...")
+            logging.info("ChatManager - Generating response")
             for chunk in self.llm.stream(formatted_prompt, temperature=0.7):
                 response += chunk
                 print(chunk, end="", flush=True)
-                logging.info(f"Response chunk: {chunk}")
-            logging.info("Response generation complete.")
+            logging.info("ChatManager - Response generation complete")
             print()
 
-            # Log the response
-            logging.info(f"Response: {response}")
+            # Log the complete response
+            logging.info("ChatManager - Generated response: %s", response)
 
             # Update the chat history
             chat_history += f"{user_name}: {question}\nAgent: {response}\n"
 
-            # Update the context vectorstore 
-            logging.info("Updating context...")
-            update_context(question, chat_history) 
-            logging.info("Context updated.")
+            # Update the context vectorstore
+            logging.info("ChatManager - Updating context")
+            update_context(question, chat_history)
+            logging.info("ChatManager - Context updated")
 
             # Save the current interaction to memory (using embeddings)
-            logging.info("Saving context to memory...")
+            logging.info("ChatManager - Saving context to memory")
             self.memory.save_context({"input": question}, {"output": response})
-            logging.info("Context saved.")
+            logging.info("ChatManager - Context saved")
