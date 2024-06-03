@@ -14,17 +14,11 @@ Think step-by-step to ensure your reasoning is sound.
 
 Don't repeat yourself over and over.
 
-Don't respond with more than five paragraphs.  
+Keep your responses concise and to the point, with no more than three paragraphs.  
 
-Provide your answer in the form of a concise report, summarizing the relevant findings from the search and incorporating the conversation history.
+Provide your answer in the form of a brief summary, highlighting the key points from the search results and conversation history.
 
-When summarizing the conversation, focus on the key topics and questions discussed. Only include the most important information. 
-
-Here's an example interaction:
-
-User: What is the capital of France?
-Search Results: ... (search results about Paris)
-Assistant: The capital of France is Paris. this information was confirmed by searching online. 
+When summarizing the conversation, focus on the main topics and questions discussed, and include only the most relevant information.
 
 <|eot_id|>
 <|start_header_id|>user<|end_header_id|>
@@ -37,11 +31,11 @@ MAIN_PROMPT = PromptTemplate(
     {chat_history}
     {user_name}: {question}
 
-    In order to provide a helpful and accurate response, I have also searched for information on the topic:
+    To provide a helpful and accurate response, I have searched for relevant information:
 
     {search_results}
 
-    Please refer to these search results as necessary. If you require additional assistance, please let me know.
+    Please let me know if you need any further assistance.
 
     Answer:""" 
 )
