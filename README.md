@@ -80,7 +80,10 @@ This chatbot code is hosted on GitHub. Here's how to get a copy on your computer
 
    - **ChromaDB:** The chatbot uses ChromaDB, a special database, to store and quickly search the knowledge base embeddings. ChromaDB will create its data files in the `my_kb` directory.
 
-5. **Run the Chatbot:**
+5.  mv config.sample.py config.py
+    then add you api keys
+
+6. **Run the Chatbot:**
    - `python main.py`
 
 ## Chatting with the Bot
