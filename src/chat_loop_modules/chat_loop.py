@@ -32,48 +32,13 @@ async def run_conversation(chat_manager):
             logging.info("Exiting conversation loop...")
             break
 
-        if question.lower() == "/help":
-            logging.info("Help request...")
-            help_text = """
-Available commands:
-- /clear memory: Clears the conversation memory
-- /help: Displays this help information
-- /quit, /exit, /bye: Exits the chatbot
-
-Available skills:
-"""
-            for skill in chat_manager.available_skills:
-                help_text += f"- {skill.__class__.__name__}: {skill.description}\n"
-            print(help_text)
-            continue
-
-        # Check for skill invocation
-        if "assistant" in question.lower():
-            logging.info("Assistant keyword detected, checking for skills.")
-            command = question.lower().split("assistant", 1)[1].strip()
-            for skill in chat_manager.available_skills:
-                if skill.trigger(command):
-                    logging.info(f"Skill triggered: {skill.__class__.__name__}")
-                    response = skill.process(command)
-                    print(f"Agent: {response}")
-                    update_context(question, response)
-                    break
-            else:
-                logging.info("No skill matched the command, passing to router.")
-                context = chat_manager.memory.load_memory_variables({"question": question})
-                chat_history = context.get("history", "")
-                response = chat_manager.router.route(question, chat_history, chat_manager.available_skills)
-                print(f"Agent: {response}")
-                update_context(question, response)
-            continue  # Go to the next user input
-
         # Load relevant context from memory using embeddings
         logging.info("Loading context from memory...")
-        context = chat_manager.memory.load_memory_variables({"question": question})
+        context = chat_manager.memory.load_memory_variables(question)
         chat_history = context.get("history", "")
         logging.info(f"Loaded chat history: {chat_history}")
 
-        # Route the question (for regular questions, not skills)
+        # Route the question
         logging.info("Routing question...")
         response = chat_manager.router.route(question, chat_history, chat_manager.available_skills)
         logging.info("Routing complete.")
@@ -105,15 +70,14 @@ Available skills:
         logging.info("Response generation complete.")
         print()
 
-        # Log the response
         logging.info(f"Response: {response}")
 
-        # Update the context vectorstore
+        # Update context
         logging.info("Updating context...")
         update_context(question, response)
         logging.info("Context updated.")
 
-        # Save the current interaction to memory (using embeddings)
+        # Save context to memory
         logging.info("Saving context to memory...")
         chat_manager.memory.save_context({"input": question}, {"output": response})
         logging.info("Context saved.")

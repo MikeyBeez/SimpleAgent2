@@ -1,12 +1,13 @@
 import requests
-import config  
+import config
 
-class GetWeatherSkill: 
+class GetWeatherSkill:
     def __init__(self, latitude, longitude):
         self.latitude = latitude
         self.longitude = longitude
+        self.description = "Provides weather information for the configured location"  # Add a description attribute
 
-    def process(self, input_text): 
+    def process(self, input_text):
         """Fetches and formats weather data from NOAA."""
         return self.get_noaa_weather(self.latitude, self.longitude)  # Call as method
 
@@ -14,8 +15,8 @@ class GetWeatherSkill:
         return input_text.lower() == "weather"
 
     def get_noaa_weather(self, latitude, longitude):
-        """Fetches basic weather data from NOAA, 
-           includes error handling and checks for dangerous weather, 
+        """Fetches basic weather data from NOAA,
+           includes error handling and checks for dangerous weather,
            and formats the output for an Alexa-like response.
         """
 

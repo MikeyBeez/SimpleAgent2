@@ -6,6 +6,13 @@ from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from pydantic import BaseModel, Extra
 from chat_loop_modules.context_manager import get_chat_history
 from config import SIMILARITY_THRESHOLD, TOP_N_RESULTS
+import logging
+
+logging.basicConfig(
+    filename='chat_log.txt',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(message)s'
+)
 
 class EmbeddingMemory(ConversationBufferMemory):
     """
@@ -15,9 +22,9 @@ class EmbeddingMemory(ConversationBufferMemory):
     class Config:
         extra = Extra.allow
 
-    def __init__(self, vectorstore, llm, summary_frequency=5): 
+    def __init__(self, vectorstore, llm, summary_frequency=5):
         super().__init__(llm=llm, memory_key="chat_history", input_key="input", output_key="output")
-        self.vectorstore = vectorstore  
+        self.vectorstore = vectorstore
         self._summary_frequency = summary_frequency
         self.turn_count = 0
 
@@ -25,9 +32,9 @@ class EmbeddingMemory(ConversationBufferMemory):
         """
         Loads relevant context from the vectorstore based on the current question.
         """
-        # Create the inputs dictionary here
-        inputs = {"question": question}
+        logging.info("Loading memory variables")
 
+        inputs = {"question": question}
         question_embedding = self.vectorstore._embedding_function.embed_query(question)
 
         # Retrieve top N most similar results based on similarity threshold
@@ -37,51 +44,66 @@ class EmbeddingMemory(ConversationBufferMemory):
             score_threshold=SIMILARITY_THRESHOLD
         )
 
-        # Print the retrieved embeddings and convert them into English tokens
-        for i, result in enumerate(results):
-            print(f"Embedding {i+1}:")
-            print(result.embedding)
-
-            # Convert the embedding into English tokens
-            tokens = self.vectorstore._embedding_function.decode(result.embedding)
-            print(f"English tokens {i+1}:")
-            print(tokens)
-            print()
-
-        # Get the chat history directly:
-        chat_history = get_chat_history() 
+        logging.info(f"Retrieved {len(results)} relevant results from the vectorstore.")
 
         # Load context into ConversationBufferMemory
-        for message in chat_history: 
-            if message.startswith('User'):
-                self.chat_memory.add_user_message(HumanMessage(content=message.split('User: ')[1]))
-            elif message.startswith('Chatbot'):
-                self.chat_memory.add_ai_message(AIMessage(content=message.split('Chatbot: ')[1]))
+        for result in results:
+            text = result.metadata['text']
+            if text.startswith('User'):
+                self.chat_memory.add_user_message(HumanMessage(content=text.split('User: ')[1]))
+            elif text.startswith('Chatbot'):
+                self.chat_memory.add_ai_message(AIMessage(content=text.split('Chatbot: ')[1]))
 
-        return {"history": chat_history} 
+        return {"history": [result.metadata['text'] for result in results]}
 
     def save_context(self, inputs, outputs):
         """
-        Saves the current interaction to memory and the vectorstore. 
+        Saves the current interaction to memory and the vectorstore.
         """
-        text = f"User: {inputs['input']}\nChatbot: {outputs['output']}"
-        embedding = self.vectorstore._embedding_function.embed_query(text) 
+        logging.info("Saving context")
 
-        # Provide a dictionary or None for metadatas
-        metadata = {"source": "conversation"} 
-        self.vectorstore.add_texts([text], embeddings=[embedding], metadatas=[metadata]) 
+        # Get the user input and chatbot response
+        user_input = inputs['input']
+        chatbot_response = outputs['output']
 
-        # Update the base ConversationBufferMemory 
-        super().save_context(inputs, outputs) 
+        # Create the question-answer pair text
+        qa_pair_text = f"User: {user_input}\nChatbot: {chatbot_response}"
 
+        # Generate the embedding for the question-answer pair
+        qa_pair_embedding = self.vectorstore._embedding_function.embed_query(qa_pair_text)
+
+        # Create metadata for the question-answer pair
+        metadata = {
+            "text": qa_pair_text,
+            "user_input": user_input,
+            "chatbot_response": chatbot_response,
+            "source": "conversation"
+        }
+
+        # Add the question-answer pair text, embedding, and metadata to the vectorstore
+        self.vectorstore.add_texts(
+            texts=[qa_pair_text],
+            embeddings=[qa_pair_embedding],
+            metadatas=[metadata]
+        )
+
+        logging.info("Added current interaction to the vectorstore.")
+
+        # Update the base ConversationBufferMemory
+        super().save_context(inputs, outputs)
+
+        # Increment the turn count
         self.turn_count += 1
-        if self.turn_count % self._summary_frequency == 0:  
+
+        # Summarize the conversation history if the turn count reaches the summary frequency
+        if self.turn_count % self._summary_frequency == 0:
             self.summarize_history(inputs, outputs)
 
     def summarize_history(self, inputs, outputs):
         """
         Summarizes the conversation history using the LLM.
         """
+        logging.info("Summarizing history")
         messages = self.chat_memory.messages
         if len(messages) == 0:
             return
@@ -100,5 +122,5 @@ class EmbeddingMemory(ConversationBufferMemory):
 
         summary_message = summarization_chain.invoke({"chat_history": messages})
 
-        self.chat_memory.clear()  
+        self.chat_memory.clear()
         self.chat_memory.add_message(summary_message)

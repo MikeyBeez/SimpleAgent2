@@ -37,28 +37,38 @@ class EmbeddingMemory(ConversationBufferMemory):
         inputs = {"question": question}
         question_embedding = self.vectorstore._embedding_function.embed_query(question)
 
-        # Retrieve top N most similar results
-        results = self.vectorstore.similarity_search_by_vector(
+        # Retrieve top N results with similarity scores
+        results = self.vectorstore.similarity_search_with_score(
             question_embedding,
             k=TOP_N_RESULTS
         )
 
-        # Get the chat history directly:
-        chat_history = get_chat_history()
+        logging.info(f"Retrieved {len(results)} results from the vectorstore.")
+
+        # Filter results based on the similarity score
+        filtered_results = [result for result in results if result[1] >= SIMILARITY_THRESHOLD]
+
+        logging.info(f"After filtering, {len(filtered_results)} relevant results remain.")
 
         # Load context into ConversationBufferMemory
-        for message in chat_history:
-            if message.startswith('User'):
-                self.chat_memory.add_user_message(HumanMessage(content=message.split('User: ')[1]))
-            elif message.startswith('Chatbot'):
-                self.chat_memory.add_ai_message(AIMessage(content=message.split('Chatbot: ')[1]))
+        for result in filtered_results:
+            document = result[0]
+            if isinstance(document, str):
+                # If the document is a string, use it directly
+                text = document
+            else:
+                # If the document is not a string, try to access the 'text' key in the metadata
+                text = document.metadata.get('text', '')
 
-        return {"history": chat_history}
+            if text.startswith('User'):
+                self.chat_memory.add_user_message(HumanMessage(content=text.split('User: ')[1]))
+            elif text.startswith('Chatbot'):
+                self.chat_memory.add_ai_message(AIMessage(content=text.split('Chatbot: ')[1]))
+
+        return {"history": [result[0].metadata.get('text', '') for result in filtered_results]}
 
     def save_context(self, inputs, outputs):
-        """
-        Saves the current interaction to memory and the vectorstore.
-        """
+        """Saves the current interaction to memory and the vectorstore."""
         logging.info("Saving context")
 
         # Get the user input and chatbot response
@@ -73,6 +83,7 @@ class EmbeddingMemory(ConversationBufferMemory):
 
         # Create metadata for the question-answer pair
         metadata = {
+            "text": qa_pair_text,
             "user_input": user_input,
             "chatbot_response": chatbot_response,
             "source": "conversation"
@@ -85,7 +96,9 @@ class EmbeddingMemory(ConversationBufferMemory):
             metadatas=[metadata]
         )
 
-        # Update the base ConversationBufferMemory with the user input and chatbot response
+        logging.info("Added current interaction to the vectorstore.")
+
+        # Update the base ConversationBufferMemory
         super().save_context(inputs, outputs)
 
         # Increment the turn count

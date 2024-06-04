@@ -2,7 +2,7 @@ import datetime
 
 class GetTimeSkill:
     def __init__(self):
-        pass
+        self.description = "Tells the current time"  # Add a description attribute
 
     def process(self, input_text):
         now = datetime.datetime.now()

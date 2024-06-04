@@ -1,30 +1,32 @@
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain_community.vectorstores import Chroma
+import config
 
-embedding_model = OllamaEmbeddings(model="all-minilm")
-vectorstore = Chroma("my_context", embedding_function=embedding_model)
+# Initialize the embedding model
+embedding_model = OllamaEmbeddings(model=config.embedding_model_name)
 
-# Get the total number of items stored in Chroma
+# Initialize the Chroma vectorstore with the "my_chat_history" collection
+vectorstore = Chroma(persist_directory="my_kb", embedding_function=embedding_model, collection_name="my_chat_history")
+
+# Get the total number of items stored in the "my_chat_history" collection
 total_items = vectorstore._collection.count()
+print(f"Total items in the 'my_chat_history' collection: {total_items}")
 
-# Calculate the offset to retrieve the last 20 items
-offset = max(0, total_items - 20)
+# Retrieve all items from the "my_chat_history" collection
+items = vectorstore._collection.get()
 
-# Retrieve the last 20 items using limit and offset
-last_20_items = vectorstore._collection.get(limit=20, offset=offset)
-
-for i, item in enumerate(last_20_items["documents"], start=1):
-    print(f"Item {i}:")
-    print("Text:", item)
+for i, item in enumerate(items["documents"], start=1):
+    print(f"\nItem {i}:")
+    print("Text:")
+    print(item)
     
-    # Get the corresponding embedding and metadata
-    embedding = last_20_items["embeddings"][i - 1]
-    metadata = last_20_items["metadatas"][i - 1]
-    
-    print("Embedding:", embedding)
-    print("Metadata:", metadata)
+    # Check if the metadata exists
+    if items["metadatas"]:
+        metadata = items["metadatas"][i - 1]
+        print("\nMetadata:")
+        for key, value in metadata.items():
+            print(f"{key}: {value}")
+    else:
+        print("\nNo metadata available.")
 
-    # Convert the embedding into English tokens
-    tokens = embedding_model.decode(embedding)
-    print("English tokens:", tokens)
-    print()
+# Skip printing embeddings and English tokens
