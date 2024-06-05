@@ -31,7 +31,7 @@ MAIN_PROMPT = PromptTemplate(
     {chat_history}
     {user_name}: {question}
 
-    To provide a helpful and accurate response, I have searched for relevant information:
+    To provide a helpful and accurate response, I have also searched for relevant information:
 
     {search_results}
 

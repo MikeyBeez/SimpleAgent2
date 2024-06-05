@@ -98,7 +98,7 @@ class ChatManager:
             if question.lower() == "clear memory":
                 logging.info("ChatManager - Clearing memory")
                 self.memory.vectorstore.delete_collection()  # Clear Chroma collection
-                print("Conversation memory cleared.")
+                print("Conversation memory cleared. Please exit and restart main.py")
                 logging.info("ChatManager - Memory cleared")
 
             if question.lower() in ["quit", "exit", "bye"]:
@@ -106,6 +106,9 @@ class ChatManager:
                 break
 
             # Load relevant context from memory using embeddings
+
+            if config.DEBUG:
+            print("DEBUG: Loading context from memory...")
             logging.info("ChatManager - Loading context from memory")
             context = self.memory.load_memory_variables(question)
             chat_history = context.get("history", "")
@@ -113,6 +116,9 @@ class ChatManager:
 
             # Determine if a search is needed, a skill should be used,
             # or the knowledge base should be queried
+
+            if config.DEBUG:
+                print("DEBUG: Routing...")
             logging.info("ChatManager - Routing question")
             response = self.router.route(question, chat_history, self.available_skills)
             logging.info("ChatManager - Routing complete, response: %s", response)
@@ -124,6 +130,9 @@ class ChatManager:
                 logging.info("ChatManager - Default response: %s", response)
 
             # Format the main prompt
+
+            if config.DEBUG:
+                print("DEBUG: formatting prompt...")
             logging.info("ChatManager - Formatting prompt")
             formatted_prompt = MAIN_PROMPT.format(
                 chat_history=chat_history,
@@ -134,6 +143,9 @@ class ChatManager:
             logging.debug("ChatManager - Formatted prompt: %s", formatted_prompt)
 
             # Generate the agent's response using streaming output
+
+            if config.DEBUG:
+                print("DEBUG: Response...")
             print("Agent: ", end="")
             response = ""
             logging.info("ChatManager - Generating response")

@@ -6,6 +6,7 @@ from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from pydantic import BaseModel, Extra
 from chat_loop_modules.context_manager import get_chat_history
 import logging
+import config
 
 logging.basicConfig(
     filename='chat_log.txt',
@@ -131,3 +132,23 @@ class EmbeddingMemory(ConversationBufferMemory):
 
         self.chat_memory.clear()
         self.chat_memory.add_message(summary_message)
+
+    def filter_context(self, context, question):
+        """Filters the context based on relevance to the current question."""
+        if config.DEBUG:
+            print("DEBUG: Filtering context based on relevance...")
+
+        filtered_context = []
+        for message in context:
+            if self.is_relevant(message, question):
+                filtered_context.append(message)
+
+        return filtered_context
+
+    def is_relevant(self, message, question):
+        """Determines if a message is relevant to the current question."""
+        # Implement your relevance logic here
+        # For example, you can use string matching, keyword extraction, or semantic similarity
+        # Return True if the message is relevant, False otherwise
+        # You can adjust the relevance criteria based on your specific requirements
+        return True  # Placeholder implementation, replace with your own logic

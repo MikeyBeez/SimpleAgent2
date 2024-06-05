@@ -12,10 +12,12 @@ vectorstore = Chroma("my_context", embedding_function=embedding_model)
 
 chat_history = [] # Store the chat history directly in context_manager.py
 
-def update_context(question, response):
+def update_context(inputs):
     """
     Updates the context vectorstore and chat history.
     """
+    question = inputs["input"]
+    response = inputs["output"]
     print(f"Updating context with question-answer pair: {question} - {response}")
 
     # Append question-answer pair to history
@@ -37,4 +39,4 @@ def update_context(question, response):
 
 def get_chat_history():
     """Returns the current chat history."""
-    return chat_history 
+    return chat_history

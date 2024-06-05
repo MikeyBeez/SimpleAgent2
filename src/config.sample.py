@@ -1,4 +1,5 @@
 #Copy this to config.py and add your info
+DEBUG = False  # Set to True to enable debug messages, False to disable
 zip_code = "72619"
 latitude = 36.3760 # Replace with your latitude
 longitude = -92.5892 # Replace with your longitude
@@ -14,5 +15,7 @@ WELCOME_MESSAGE = """
 *****************************
 **  Welcome to the Chatbot! **
 *****************************
+For assistance, please enter: /help
+To end, enter: /bye 
 """
 

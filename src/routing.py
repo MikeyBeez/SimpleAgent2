@@ -3,6 +3,7 @@ from chat_loop_modules.context_manager import update_context
 from chat_loop_modules.skill_handler import handle_skills
 from langchain_community.tools import DuckDuckGoSearchRun
 import logging
+import config
 
 # Configure logging
 logging.basicConfig(
@@ -10,8 +11,6 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(message)s'
 )
-
-DO_NOTHING_TOKEN = "##DO_NOTHING##"
 
 class Router:
     """
@@ -34,41 +33,44 @@ class Router:
             available_skills (list): A list of available Skill objects.
 
         Returns:
-            str: The response to the user, or DO_NOTHING_TOKEN if a skill was handled.
+            str: The search results or an empty string if no search is needed.
         """
-        logging.info(f"User question: {question}")  
+        if config.DEBUG:
+            print(f"DEBUG: User question: {question}")
 
         # Check for "assistant" wakeword
         if question.lower().startswith("assistant"):
-            logging.info("Assistant wakeword detected.")
+            if config.DEBUG:
+                print("DEBUG: Assistant wakeword detected.")
             command = question.lower().split("assistant", 1)[1].strip().lstrip(" ,.;:")
-            logging.info(f"Extracted command: {command}") 
+            if config.DEBUG:
+                print(f"DEBUG: Extracted command: {command}")
 
             # Call handle_skills() only inside the "assistant" wakeword block
             skill_response = handle_skills(command, available_skills)
             if skill_response:
-                logging.info("Skill triggered successfully.")
+                if config.DEBUG:
+                    print("DEBUG: Skill triggered successfully.")
                 return skill_response
             else:
-                logging.info("No skill matched the command.")
+                if config.DEBUG:
+                    print("DEBUG: No skill matched the command.")
 
-        # Regular routing logic (for questions without the "assistant" wakeword) 
+        # Regular routing logic (for questions without the "assistant" wakeword)
         if should_search(question, chat_history, self.llm, self.embeddings, self.chat_history_embeddings):
-            logging.info("Decision: Performing a search.")
+            if config.DEBUG:
+                print("DEBUG: Decision: Performing a search.")
             search_quality_reflection = "The search results provide some relevant information to answer the question, but may not be comprehensive enough to fully address all aspects of the query."
             search_quality_score = 3  # Assuming a scale of 1-5
             result = self.search.run(question)
             search_results = f"Search Quality Reflection: {search_quality_reflection}\nSearch Quality Score: {search_quality_score}\n\nSearch Results:\n{result}"
         else:
-            logging.info("Decision: Using knowledge base (not implemented).") 
+            if config.DEBUG:
+                print("DEBUG: Decision: Using knowledge base (not implemented).")
             search_results = "I don't have enough information in my knowledge base to answer this question confidently."
 
-        # Generate response using the LLM
-        logging.info("Generating response using LLM...")
-        prompt = f"{chat_history}\nUser: {question}\nAssistant: {search_results}\nAssistant:"
-        llm_result = self.llm.generate([prompt])
-        response = llm_result.generations[0][0].text  # Retrieve the generated response from the LLMResult object
-        logging.info(f"Generated response: {response}")
+        if config.DEBUG:
+            print(f"DEBUG: Generated search results: {search_results}")
 
-        update_context(question, response)
-        return response
+        update_context({"input": question, "output": search_results})  # Pass a dictionary with "input" and "output" keys
+        return search_results

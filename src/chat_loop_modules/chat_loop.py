@@ -3,12 +3,14 @@ import logging
 from prompts import MAIN_PROMPT
 from .context_manager import update_context, get_chat_history
 from logging_config import configure_logging
+import config
 
 configure_logging()
 
 async def run_conversation(chat_manager):
     """Handles the main conversation loop."""
-    logging.info("Starting conversation loop...")
+    if config.DEBUG:
+        print("DEBUG: Starting conversation loop...")
 
     while True:
         # Get user input
@@ -18,66 +20,78 @@ async def run_conversation(chat_manager):
         else:
             question = input("You: ")
 
-        logging.info(f"User Input: {question}")
+        if config.DEBUG:
+            print(f"DEBUG: User Input: {question}")
 
         # Handle special commands like "clear memory" and exit
         if question.lower() == "/clear memory":
-            logging.info("Clearing memory...")
+            if config.DEBUG:
+                print("DEBUG: Clearing memory...")
             chat_manager.memory.vectorstore.delete_collection()
             print("Conversation memory cleared.")
-            logging.info("Memory cleared.")
+            if config.DEBUG:
+                print("DEBUG: Memory cleared.")
             continue
 
         if question.lower() in ["/quit", "/exit", "/bye"]:
-            logging.info("Exiting conversation loop...")
+            if config.DEBUG:
+                print("DEBUG: Exiting conversation loop...")
             break
 
         # Load relevant context from memory using embeddings
-        logging.info("Loading context from memory...")
+        if config.DEBUG:
+            print("DEBUG: Loading context from memory...")
         context = chat_manager.memory.load_memory_variables(question)
-        chat_history = context.get("history", "")
-        logging.info(f"Loaded chat history: {chat_history}")
+        embedded_memory_results = context.get("history", "")
+        if config.DEBUG:
+            print(f"DEBUG: Loaded embedded memory results: {embedded_memory_results}")
+            print("DEBUG: End of loading context from memory.")
+
+        # Filter context based on relevance and recency
+        relevant_context = chat_manager.memory.filter_context(embedded_memory_results, question)
+        if config.DEBUG:
+            print(f"DEBUG: Filtered relevant context: {relevant_context}")
 
         # Route the question
-        logging.info("Routing question...")
-        response = chat_manager.router.route(question, chat_history, chat_manager.available_skills)
-        logging.info("Routing complete.")
-
-        # Check if the response is None (no route found)
-        if response is None:
-            logging.info("No route found, defaulting response...")
-            response = "I'm not sure how to answer that."
-            logging.info(f"Default response: {response}")
+        if config.DEBUG:
+            print("DEBUG: Routing question...")
+        search_results = chat_manager.router.route(question, relevant_context, chat_manager.available_skills)
+        if config.DEBUG:
+            print("DEBUG: Routing complete.")
 
         # Format the main prompt
-        logging.info("Formatting prompt...")
+        if config.DEBUG:
+            print("DEBUG: Formatting prompt...")
         formatted_prompt = MAIN_PROMPT.format(
-            chat_history=chat_history,
+            chat_history=relevant_context,  # Use the filtered relevant context as chat history
             question=question,
-            search_results=response,
+            search_results=search_results,
             user_name=user_name
         )
-        logging.info(f"Formatted prompt: {formatted_prompt}")
+        if config.DEBUG:
+            print(f"DEBUG: Formatted prompt: {formatted_prompt}")
 
         # Generate the agent's response using streaming output
         print("Agent: ", end="")
         response = ""
-        logging.info("Generating response...")
+        if config.DEBUG:
+            print("DEBUG: Generating response...")
         for chunk in chat_manager.llm.stream(formatted_prompt, temperature=0.7):
             response += chunk
             print(chunk, end="", flush=True)
-            logging.info(f"Response chunk: {chunk}")
-        logging.info("Response generation complete.")
+            if config.DEBUG:
+                print(f"DEBUG: Response chunk: {chunk}")
+        if config.DEBUG:
+            print("DEBUG: Response generation complete.")
         print()
 
-        logging.info(f"Response: {response}")
+        if config.DEBUG:
+            print(f"DEBUG: Response: {response}")
 
-        # Update context
-        logging.info("Updating context...")
-        update_context(question, response)
-        logging.info("Context updated.")
-
-        # Save context to memory
-        logging.info("Saving context to memory...")
+        # Update context and save to memory
+        if config.DEBUG:
+            print("DEBUG: Updating context and saving to memory...")
+        update_context({"input": question, "output": response})
         chat_manager.memory.save_context({"input": question}, {"output": response})
-        logging.info("Context saved.")
+        if config.DEBUG:
+            print("DEBUG: Context updated and saved.")
