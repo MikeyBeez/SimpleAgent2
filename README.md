@@ -1,5 +1,6 @@
 # SimpleAgent2: A Chatbot That Remembers, Learns, and Uses Skills
 # This is a work in Progress not a polished piece of code.  Nevertheless, there are a lot of powerfule ideas here.  
+I've added Debug statements that are eneabled in config.py by setting DEBUG = True.  
 
 SimpleAgent2 is an advanced chatbot framework that combines the power of natural language processing, memory management, and modular skills to create intelligent and engaging conversational experiences. With SimpleAgent2, developers can build chatbots that understand user intents, provide relevant information, and execute specific tasks.
 
