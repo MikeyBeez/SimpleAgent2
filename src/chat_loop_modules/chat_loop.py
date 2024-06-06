@@ -7,6 +7,8 @@ import config
 
 configure_logging()
 
+DO_NOTHING_TOKEN = "##DO_NOTHING##"
+
 async def run_conversation(chat_manager):
     """Handles the main conversation loop."""
     if config.DEBUG:
@@ -58,6 +60,12 @@ async def run_conversation(chat_manager):
         search_results = chat_manager.router.route(question, relevant_context, chat_manager.available_skills)
         if config.DEBUG:
             print("DEBUG: Routing complete.")
+
+        # Check if the response is DO_NOTHING_TOKEN
+        if search_results == DO_NOTHING_TOKEN:
+            if config.DEBUG:
+                print("DEBUG: Assistant command detected. Skipping response generation.")
+            continue
 
         # Format the main prompt
         if config.DEBUG:

@@ -108,7 +108,7 @@ class ChatManager:
             # Load relevant context from memory using embeddings
 
             if config.DEBUG:
-            print("DEBUG: Loading context from memory...")
+                print("DEBUG: Loading context from memory...")
             logging.info("ChatManager - Loading context from memory")
             context = self.memory.load_memory_variables(question)
             chat_history = context.get("history", "")

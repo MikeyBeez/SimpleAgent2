@@ -4,6 +4,10 @@ from chat_loop_modules.skill_handler import handle_skills
 from langchain_community.tools import DuckDuckGoSearchRun
 import logging
 import config
+import datetime
+from get_weather_skill import GetWeatherSkill
+
+DO_NOTHING_TOKEN = "##DO_NOTHING##"
 
 # Configure logging
 logging.basicConfig(
@@ -45,6 +49,20 @@ class Router:
             command = question.lower().split("assistant", 1)[1].strip().lstrip(" ,.;:")
             if config.DEBUG:
                 print(f"DEBUG: Extracted command: {command}")
+
+
+            if command == "time":
+                    current_time = datetime.datetime.now().strftime("%I:%M %p")
+                    print(f"The current time is {current_time}.")
+                    return DO_NOTHING_TOKEN
+
+            if command == "weather":
+                for skill in available_skills:
+                    if isinstance(skill, GetWeatherSkill):
+                        weather_info = skill.process(command)
+                        print(weather_info)
+                        return DO_NOTHING_TOKEN
+
 
             # Call handle_skills() only inside the "assistant" wakeword block
             skill_response = handle_skills(command, available_skills)

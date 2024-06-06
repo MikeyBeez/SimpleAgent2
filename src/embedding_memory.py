@@ -146,9 +146,14 @@ class EmbeddingMemory(ConversationBufferMemory):
         return filtered_context
 
     def is_relevant(self, message, question):
-        """Determines if a message is relevant to the current question."""
-        # Implement your relevance logic here
-        # For example, you can use string matching, keyword extraction, or semantic similarity
-        # Return True if the message is relevant, False otherwise
-        # You can adjust the relevance criteria based on your specific requirements
-        return True  # Placeholder implementation, replace with your own logic
+    # Filter out common greetings and irrelevant messages
+        common_greetings = ["hello", "hi", "hey", "good morning",
+                        "good afternoon", "good evening", "good night",
+                        "goodbye", "bye", "see you later", "talk to you later"]
+        if any(greeting in message.lower() for greeting in common_greetings):
+            return False
+
+    # Implement additional relevance logic based on your specific requirements
+    # For example, you can use string matching, keyword extraction, or semantic similarity
+    # Return True if the message is relevant, False otherwise
+        return True
