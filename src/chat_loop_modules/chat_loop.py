@@ -80,17 +80,15 @@ async def run_conversation(chat_manager):
             print(f"DEBUG: Formatted prompt: {formatted_prompt}")
 
         # Generate the agent's response using streaming output
-        print("Agent: ", end="")
+        print("Agent: ", end="", flush=True)
         response = ""
         if config.DEBUG:
             print("DEBUG: Generating response...")
         for chunk in chat_manager.llm.stream(formatted_prompt, temperature=0.7):
-            response += chunk
             print(chunk, end="", flush=True)
-            if config.DEBUG:
-                print(f"DEBUG: Response chunk: {chunk}")
+            response += chunk
         if config.DEBUG:
-            print("DEBUG: Response generation complete.")
+            print("\nDEBUG: Response generation complete.")
         print()
 
         if config.DEBUG:
